@@ -1,0 +1,72 @@
+// Progress & Sessions API
+import { Progress, Session } from '../types';
+import { generateUUID } from '../utils/uuid';
+import API from './index';
+
+export const progressAPI = {
+  // Get user progress for a deck
+  async getProgress(userId: string, deckId: string): Promise<Progress[]> {
+    try {
+      const response = await API.get(`/progress/${userId}/${deckId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch progress');
+    }
+  },
+
+  // Update progress for a flashcard
+  async updateProgress(data: {
+    user_id: string;
+    flashcard_id: string;
+    ease?: number;
+    interval?: number;
+    next_review_at?: string;
+    times_seen: number;
+  }): Promise<Progress> {
+    try {
+      const progressId = generateUUID();
+      
+      const response = await API.post('/progress', {
+        id: progressId,
+        ...data,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to update progress');
+    }
+  },
+};
+
+export const sessionsAPI = {
+  // Get user's learning sessions
+  async getSessions(userId: string): Promise<Session[]> {
+    try {
+      const response = await API.get(`/sessions/${userId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to fetch sessions');
+    }
+  },
+
+  // Create new learning session
+  async createSession(data: {
+    user_id: string;
+    deck_id: string;
+    type: 'FLASHCARD' | 'QUIZ' | 'MATCH';
+    total: number;
+    correct: number;
+    details?: any;
+  }): Promise<Session> {
+    try {
+      const sessionId = generateUUID();
+      
+      const response = await API.post('/sessions', {
+        id: sessionId,
+        ...data,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Failed to create session');
+    }
+  },
+};
