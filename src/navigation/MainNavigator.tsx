@@ -3,7 +3,9 @@ import React from "react";
 import { MainTabParamList } from "./types";
 
 // Placeholder screens - will be created in Phase 2
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import { Button } from "../components/ui/Button";
+import { useAuth } from "../hooks/useAuth";
 
 const HomeScreen = () => (
   <View style={styles.placeholder}>
@@ -17,11 +19,44 @@ const CreateDeckScreen = () => (
   </View>
 );
 
-const SettingsScreen = () => (
-  <View style={styles.placeholder}>
-    <Text style={styles.text}>Settings Screen (Coming in Phase 4)</Text>
-  </View>
-);
+const SettingsScreen = () => {
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            Alert.alert("Error", "Failed to logout");
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.placeholder}>
+      <Text style={styles.text}>Settings Screen</Text>
+      {user && (
+        <View style={styles.userInfo}>
+          <Text style={styles.username}>{user.username}</Text>
+          <Text style={styles.email}>{user.email}</Text>
+        </View>
+      )}
+      <Button
+        title="Logout"
+        onPress={handleLogout}
+        variant="outline"
+        style={styles.logoutButton}
+      />
+    </View>
+  );
+};
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -74,9 +109,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F5F5F5",
+    padding: 20,
   },
   text: {
     fontSize: 18,
     color: "#666",
+    marginBottom: 20,
+  },
+  userInfo: {
+    alignItems: "center",
+    marginBottom: 30,
+    padding: 20,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    width: "100%",
+    maxWidth: 300,
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
+  },
+  email: {
+    fontSize: 14,
+    color: "#666",
+  },
+  logoutButton: {
+    marginTop: 10,
+    minWidth: 200,
   },
 });
