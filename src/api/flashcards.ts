@@ -5,10 +5,10 @@ import API from './index';
 
 export const flashcardsAPI = {
   // Get all flashcards for a deck
-  async getFlashcards(deckId: string): Promise<Flashcard[]> {
+  async getFlashcardsByDeck(deckId: string): Promise<{ data: Flashcard[] }> {
     try {
       const response = await API.get(`/flashcards/${deckId}`);
-      return response.data;
+      return { data: Array.isArray(response.data) ? response.data : [] };
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Failed to fetch flashcards');
     }
@@ -24,7 +24,7 @@ export const flashcardsAPI = {
   }): Promise<Flashcard> {
     try {
       const flashcardId = generateUUID();
-      
+
       const response = await API.post('/flashcards', {
         id: flashcardId,
         ...data,

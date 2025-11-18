@@ -25,7 +25,7 @@ export const progressAPI = {
   }): Promise<Progress> {
     try {
       const progressId = generateUUID();
-      
+
       const response = await API.post('/progress', {
         id: progressId,
         ...data,
@@ -33,6 +33,36 @@ export const progressAPI = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Failed to update progress');
+    }
+  },
+
+  // Save learning session (unified method)
+  async saveSession(data: {
+    user_id: string;
+    deck_id: string;
+    session_type: 'FLASHCARD' | 'QUIZ' | 'MATCH';
+    score: number;
+    total_cards: number;
+  }): Promise<Session> {
+    try {
+      const sessionId = generateUUID();
+
+      const payload = {
+        id: sessionId,
+        user_id: data.user_id,
+        deck_id: data.deck_id,
+        session_type: data.session_type,
+        score: data.score,
+        total_cards: data.total_cards,
+      };
+
+      console.log('Sending session data:', payload);
+
+      const response = await API.post('/sessions', payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Save session error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || 'Failed to save session');
     }
   },
 };
@@ -59,7 +89,7 @@ export const sessionsAPI = {
   }): Promise<Session> {
     try {
       const sessionId = generateUUID();
-      
+
       const response = await API.post('/sessions', {
         id: sessionId,
         ...data,

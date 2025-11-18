@@ -1,23 +1,42 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React from "react";
-import { MainTabParamList } from "./types";
-
-// Placeholder screens - will be created in Phase 2
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { Button } from "../components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
+import { HomeStackParamList, MainTabParamList } from "./types";
 
-const HomeScreen = () => (
-  <View style={styles.placeholder}>
-    <Text style={styles.text}>Home Screen (Coming in Phase 2)</Text>
-  </View>
-);
+// Home Stack Screens
+import AddFlashcardScreen from "../screens/flashcard/AddFlashcardScreen";
+import EditFlashcardScreen from "../screens/flashcard/EditFlashcardScreen";
+import CreateDeckScreen from "../screens/home/CreateDeckScreen";
+import DeckDetailScreen from "../screens/home/DeckDetailScreen";
+import HomeScreen from "../screens/home/HomeScreen";
 
-const CreateDeckScreen = () => (
-  <View style={styles.placeholder}>
-    <Text style={styles.text}>Create Deck Screen (Coming in Phase 2)</Text>
-  </View>
-);
+// Learning Screens (Phase 3)
+import FlashcardStudyScreen from "../screens/learning/FlashcardStudyScreen";
+import LearningModeScreen from "../screens/learning/LearningModeScreen";
+import MatchScreen from "../screens/learning/MatchScreen";
+import QuizScreen from "../screens/learning/QuizScreen";
+import ResultScreen from "../screens/learning/ResultScreen";
+
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
+      <HomeStack.Screen name="DeckDetail" component={DeckDetailScreen} />
+      <HomeStack.Screen name="AddFlashcard" component={AddFlashcardScreen} />
+      <HomeStack.Screen name="EditFlashcard" component={EditFlashcardScreen} />
+      {/* Learning screens - Phase 3 */}
+      <HomeStack.Screen name="LearningMode" component={LearningModeScreen} />
+      <HomeStack.Screen name="FlashcardStudy" component={FlashcardStudyScreen} />
+      <HomeStack.Screen name="Quiz" component={QuizScreen} />
+      <HomeStack.Screen name="Match" component={MatchScreen} />
+      <HomeStack.Screen name="Result" component={ResultScreen} options={{ headerShown: false }} />
+    </HomeStack.Navigator>
+  );
+}
 
 const SettingsScreen = () => {
   const { logout, user } = useAuth();
@@ -64,14 +83,21 @@ export default function MainNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "#8E8E93",
+        tabBarStyle: {
+          borderTopWidth: 1,
+          borderTopColor: "#E5E5E5",
+          paddingTop: 8,
+          paddingBottom: 8,
+          height: 60,
+        },
       }}
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStackNavigator}
         options={{
           title: "My Decks",
           tabBarIcon: ({ color, size }) => (
@@ -84,6 +110,7 @@ export default function MainNavigator() {
         component={CreateDeckScreen}
         options={{
           title: "Create",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>➕</Text>
           ),
