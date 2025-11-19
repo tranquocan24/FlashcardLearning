@@ -1,0 +1,253 @@
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { flashcardsAPI } from '../../api/flashcards';
+import { HomeStackParamList } from '../../navigation/types';
+import { Flashcard } from '../../types/models';
+
+type Props = NativeStackScreenProps<HomeStackParamList, 'LearningMode'>;
+
+interface ModeOption {
+    id: 'FLASHCARD' | 'QUIZ' | 'MATCH';
+    title: string;
+    description: string;
+    icon: string;
+    color: string;
+}
+
+const modes: ModeOption[] = [
+    {
+        id: 'FLASHCARD',
+        title: 'Flashcard Study',
+        description: 'Lật thẻ để xem nghĩa và ví dụ',
+        icon: '🃏',
+        color: '#007AFF',
+    },
+    {
+        id: 'QUIZ',
+        title: 'Quiz',
+        description: 'Trắc nghiệm 4 đáp án',
+        icon: '✍️',
+        color: '#34C759',
+    },
+    {
+        id: 'MATCH',
+        title: 'Match Game',
+        description: 'Nối từ với nghĩa tương ứng',
+        icon: '🎯',
+        color: '#FF9500',
+    },
+];
+
+export default function LearningModeScreen({ navigation, route }: Props) {
+    const { deckId } = route.params;
+    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        fetchFlashcards();
+    }, []);
+
+    const fetchFlashcards = async () => {
+        try {
+            setIsLoading(true);
+            const response = await flashcardsAPI.getFlashcardsByDeck(deckId);
+            const cards = response.data || [];
+            setFlashcards(cards);
+        } catch (error) {
+            console.error('Failed to fetch flashcards:', error);
+            Alert.alert('Error', 'Failed to load flashcards');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleModeSelect = (mode: 'FLASHCARD' | 'QUIZ' | 'MATCH') => {
+        if (flashcards.length === 0) {
+            Alert.alert('No Flashcards', 'This deck has no flashcards yet.');
+            return;
+        }
+
+        if (mode === 'QUIZ' && flashcards.length < 4) {
+            Alert.alert(
+                'Not Enough Cards',
+                'You need at least 4 flashcards to play Quiz mode.'
+            );
+            return;
+        }
+
+        if (mode === 'MATCH' && flashcards.length < 4) {
+            Alert.alert(
+                'Not Enough Cards',
+                'You need at least 4 flashcards to play Match game.'
+            );
+            return;
+        }
+
+        switch (mode) {
+            case 'FLASHCARD':
+                navigation.navigate('FlashcardStudy', { deckId });
+                break;
+            case 'QUIZ':
+                navigation.navigate('Quiz', { deckId });
+                break;
+            case 'MATCH':
+                navigation.navigate('Match', { deckId });
+                break;
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color="#007AFF" />
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Choose Learning Mode</Text>
+                <Text style={styles.subtitle}>
+                    {flashcards.length} {flashcards.length === 1 ? 'card' : 'cards'} in
+                    this deck
+                </Text>
+            </View>
+
+            <View style={styles.modesContainer}>
+                {modes.map((mode) => (
+                    <TouchableOpacity
+                        key={mode.id}
+                        style={[styles.modeCard, { borderLeftColor: mode.color }]}
+                        onPress={() => handleModeSelect(mode.id)}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.modeIconContainer}>
+                            <Text style={styles.modeIcon}>{mode.icon}</Text>
+                        </View>
+                        <View style={styles.modeContent}>
+                            <Text style={styles.modeTitle}>{mode.title}</Text>
+                            <Text style={styles.modeDescription}>{mode.description}</Text>
+                        </View>
+                        <View style={styles.modeArrow}>
+                            <Text style={styles.arrowText}>›</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {flashcards.length === 0 && (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No flashcards yet</Text>
+                    <Text style={styles.emptySubtext}>
+                        Add some flashcards to start learning
+                    </Text>
+                </View>
+            )}
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+    },
+    header: {
+        padding: 20,
+        backgroundColor: '#FFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E5EA',
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#000',
+        marginBottom: 4,
+    },
+    subtitle: {
+        fontSize: 15,
+        color: '#8E8E93',
+    },
+    modesContainer: {
+        padding: 16,
+    },
+    modeCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        borderLeftWidth: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    modeIconContainer: {
+        width: 48,
+        height: 48,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        borderRadius: 10,
+        marginRight: 12,
+    },
+    modeIcon: {
+        fontSize: 24,
+    },
+    modeContent: {
+        flex: 1,
+    },
+    modeTitle: {
+        fontSize: 17,
+        fontWeight: '600',
+        color: '#000',
+        marginBottom: 2,
+    },
+    modeDescription: {
+        fontSize: 14,
+        color: '#8E8E93',
+    },
+    modeArrow: {
+        marginLeft: 8,
+    },
+    arrowText: {
+        fontSize: 28,
+        color: '#C7C7CC',
+        fontWeight: '300',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
+        marginBottom: 8,
+    },
+    emptySubtext: {
+        fontSize: 15,
+        color: '#8E8E93',
+        textAlign: 'center',
+    },
+});

@@ -16,7 +16,7 @@ export const decksAPI = {
   },
 
   // Get single deck by ID
-  async getDeck(deckId: string): Promise<Deck> {
+  async getDeckById(deckId: string): Promise<Deck> {
     try {
       const response = await API.get(`/decks/${deckId}`);
       return response.data;
@@ -34,7 +34,7 @@ export const decksAPI = {
   }): Promise<Deck> {
     try {
       const deckId = generateUUID();
-      
+
       const response = await API.post('/decks', {
         id: deckId,
         ...data,

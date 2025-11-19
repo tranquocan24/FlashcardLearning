@@ -453,12 +453,21 @@ app.get('/sessions/:userId', async (req, res) => {
 
 // Create new session
 app.post('/sessions', async (req, res) => {
-    const { id, user_id, deck_id, type, total, correct, details } = req.body;
+    const { id, user_id, deck_id, session_type, score, total_cards } = req.body;
+
+    // Debug logging
+    console.log('Received session data:', { id, user_id, deck_id, session_type, score, total_cards });
+
+    // Validate required fields
+    if (!id || !user_id || !deck_id || !session_type || score === undefined || total_cards === undefined) {
+        console.error('Missing required fields:', { id, user_id, deck_id, session_type, score, total_cards });
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     try {
         const result = await pool.query(
-            'INSERT INTO sessions (id, user_id, deck_id, type, total, correct, details, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
-            [id, user_id, deck_id, type, total, correct, details]
+            'INSERT INTO sessions (id, user_id, deck_id, type, total, correct, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
+            [id, user_id, deck_id, session_type, total_cards, score]
         );
 
         res.status(201).json(result.rows[0]);

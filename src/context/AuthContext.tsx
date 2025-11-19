@@ -3,6 +3,7 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { authAPI } from "../api/auth";
@@ -39,13 +40,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const loadUser = async () => {
     try {
+      console.log("🔄 Loading user from storage...");
       const savedUser = await storage.getItem<User>(STORAGE_KEYS.USER);
+      console.log("👤 Saved user:", savedUser);
       if (savedUser) {
         setUser(savedUser);
       }
     } catch (error) {
-      console.error("Error loading user:", error);
+      console.error("❌ Error loading user:", error);
     } finally {
+      console.log("✅ Setting isLoading to false");
       setIsLoading(false);
     }
   };
@@ -116,15 +120,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     storage.setItem(STORAGE_KEYS.USER, updatedUser);
   };
 
-  const value: AuthContextType = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    login,
-    register,
-    logout,
-    updateUser,
-  };
+  const value: AuthContextType = useMemo(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: !!user,
+      login,
+      register,
+      logout,
+      updateUser,
+    }),
+    [user, isLoading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

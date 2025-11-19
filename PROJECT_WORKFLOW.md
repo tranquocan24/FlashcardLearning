@@ -312,32 +312,32 @@ App Start
 - [ ] Add form validation
 
 ### Phase 2: Core Features - Decks & Flashcards (Week 2)
-- [ ] Create HomeScreen (Deck List)
-- [ ] Create DeckCard component
-- [ ] Implement deck fetching API
-- [ ] Create DeckDetailScreen
-- [ ] Create FlashcardList component
-- [ ] Create CreateDeckScreen
-- [ ] Create AddFlashcardScreen
-- [ ] Create EditFlashcardScreen
-- [ ] Implement CRUD operations for decks/flashcards
+- [x] Create HomeScreen (Deck List)
+- [x] Create DeckCard component
+- [x] Implement deck fetching API
+- [x] Create DeckDetailScreen
+- [x] Create FlashcardList component
+- [x] Create CreateDeckScreen
+- [x] Create AddFlashcardScreen
+- [x] Create EditFlashcardScreen
+- [x] Implement CRUD operations for decks/flashcards
 
 ### Phase 3: Learning Modes (Week 3)
-- [ ] Create LearningModeScreen (chọn mode)
-- [ ] Implement FlashcardStudyScreen
-  - [ ] Flip animation
-  - [ ] Swipe gestures
-  - [ ] Progress tracking
-- [ ] Implement QuizScreen
-  - [ ] Random answer generation
-  - [ ] Answer validation
-  - [ ] Score calculation
-- [ ] Implement MatchScreen
-  - [ ] Drag & drop or tap matching
-  - [ ] Match validation
-  - [ ] Animation effects
-- [ ] Create ResultScreen (chung cho 3 modes)
-- [ ] Implement session saving
+- [x] Create LearningModeScreen (chọn mode)
+- [x] Implement FlashcardStudyScreen
+  - [x] Flip animation
+  - [x] Swipe gestures
+  - [x] Progress tracking
+- [x] Implement QuizScreen
+  - [x] Random answer generation
+  - [x] Answer validation
+  - [x] Score calculation
+- [x] Implement MatchScreen
+  - [x] Drag & drop or tap matching
+  - [x] Match validation
+  - [x] Animation effects
+- [x] Create ResultScreen (chung cho 3 modes)
+- [x] Implement session saving
 
 ### Phase 4: User Profile & Settings (Week 4)
 - [ ] Create SettingsScreen
