@@ -1,9 +1,11 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Alert, StyleSheet, Text, View } from "react-native";
-import { Button } from "../components/ui/Button";
-import { useAuth } from "../hooks/useAuth";
-import { HomeStackParamList, MainTabParamList } from "./types";
+import { Text } from "react-native";
+import {
+  HomeStackParamList,
+  MainTabParamList,
+  SettingsStackParamList,
+} from "./types";
 
 // Home Stack Screens
 import AddFlashcardScreen from "../screens/flashcard/AddFlashcardScreen";
@@ -19,6 +21,11 @@ import MatchScreen from "../screens/learning/MatchScreen";
 import QuizScreen from "../screens/learning/QuizScreen";
 import ResultScreen from "../screens/learning/ResultScreen";
 
+// Settings Stack Screens (Phase 4)
+import ChangePasswordScreen from "../screens/settings/ChangePasswordScreen";
+import EditProfileScreen from "../screens/settings/EditProfileScreen";
+import SettingsScreen from "../screens/settings/SettingsScreen";
+
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
 function HomeStackNavigator() {
@@ -30,52 +37,48 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="EditFlashcard" component={EditFlashcardScreen} />
       {/* Learning screens - Phase 3 */}
       <HomeStack.Screen name="LearningMode" component={LearningModeScreen} />
-      <HomeStack.Screen name="FlashcardStudy" component={FlashcardStudyScreen} />
+      <HomeStack.Screen
+        name="FlashcardStudy"
+        component={FlashcardStudyScreen}
+      />
       <HomeStack.Screen name="Quiz" component={QuizScreen} />
       <HomeStack.Screen name="Match" component={MatchScreen} />
-      <HomeStack.Screen name="Result" component={ResultScreen} options={{ headerShown: false }} />
+      <HomeStack.Screen
+        name="Result"
+        component={ResultScreen}
+        options={{ headerShown: false }}
+      />
     </HomeStack.Navigator>
   );
 }
 
-const SettingsScreen = () => {
-  const { logout, user } = useAuth();
+const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-          } catch (error) {
-            Alert.alert("Error", "Failed to logout");
-          }
-        },
-      },
-    ]);
-  };
-
+function SettingsStackNavigator() {
   return (
-    <View style={styles.placeholder}>
-      <Text style={styles.text}>Settings Screen</Text>
-      {user && (
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>{user.username}</Text>
-          <Text style={styles.email}>{user.email}</Text>
-        </View>
-      )}
-      <Button
-        title="Logout"
-        onPress={handleLogout}
-        variant="outline"
-        style={styles.logoutButton}
+    <SettingsStack.Navigator screenOptions={{ headerShown: false }}>
+      <SettingsStack.Screen name="SettingsScreen" component={SettingsScreen} />
+      <SettingsStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          headerShown: true,
+          title: "Edit Profile",
+          headerBackTitle: "Back",
+        }}
       />
-    </View>
+      <SettingsStack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{
+          headerShown: true,
+          title: "Change Password",
+          headerBackTitle: "Back",
+        }}
+      />
+    </SettingsStack.Navigator>
   );
-};
+}
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -118,7 +121,7 @@ export default function MainNavigator() {
       />
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen}
+        component={SettingsStackNavigator}
         options={{
           title: "Settings",
           tabBarIcon: ({ color, size }) => (
@@ -129,41 +132,3 @@ export default function MainNavigator() {
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    padding: 20,
-  },
-  text: {
-    fontSize: 18,
-    color: "#666",
-    marginBottom: 20,
-  },
-  userInfo: {
-    alignItems: "center",
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    width: "100%",
-    maxWidth: 300,
-  },
-  username: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
-  },
-  email: {
-    fontSize: 14,
-    color: "#666",
-  },
-  logoutButton: {
-    marginTop: 10,
-    minWidth: 200,
-  },
-});
