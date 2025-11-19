@@ -114,6 +114,18 @@ export default function LearningModeScreen({ navigation, route }: Props) {
 
     return (
         <View style={styles.container}>
+            {/* Back Button */}
+            <View style={styles.backButtonContainer}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.backIcon}>←</Text>
+                    <Text style={styles.backText}>Back</Text>
+                </TouchableOpacity>
+            </View>
+
             <View style={styles.header}>
                 <Text style={styles.title}>Choose Learning Mode</Text>
                 <Text style={styles.subtitle}>
@@ -153,6 +165,7 @@ export default function LearningModeScreen({ navigation, route }: Props) {
                 </View>
             )}
         </View>
+
     );
 }
 
@@ -160,12 +173,35 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F8F9FA',
+        paddingTop: 50, // Thêm padding để tránh camera notch
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#F8F9FA',
+    },
+    backButtonContainer: {
+        paddingHorizontal: 16,
+        paddingTop: 8,
+        paddingBottom: 8,
+        backgroundColor: '#FFF',
+    },
+    backButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        alignSelf: 'flex-start',
+    },
+    backIcon: {
+        fontSize: 24,
+        color: '#007AFF',
+        marginRight: 4,
+    },
+    backText: {
+        fontSize: 17,
+        color: '#007AFF',
+        fontWeight: '500',
     },
     header: {
         padding: 20,
