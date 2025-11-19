@@ -191,7 +191,7 @@ export default function EditProfileScreen() {
                     style={[
                         styles.saveButton,
                         (!username.trim() || !email.trim() || isLoading) &&
-                            styles.saveButtonDisabled,
+                        styles.saveButtonDisabled,
                     ]}
                     onPress={handleSave}
                     disabled={!username.trim() || !email.trim() || isLoading}

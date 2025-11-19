@@ -248,7 +248,7 @@ export default function ChangePasswordScreen() {
                             newPassword !== confirmPassword ||
                             newPassword.length < 6 ||
                             isLoading) &&
-                            styles.saveButtonDisabled,
+                        styles.saveButtonDisabled,
                     ]}
                     onPress={handleChangePassword}
                     disabled={

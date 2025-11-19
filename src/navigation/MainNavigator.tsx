@@ -17,10 +17,10 @@ import QuizScreen from "../screens/learning/QuizScreen";
 import ResultScreen from "../screens/learning/ResultScreen";
 
 // Settings Screens (Phase 4)
+import { Text } from "react-native";
 import ChangePasswordScreen from "../screens/settings/ChangePasswordScreen";
 import EditProfileScreen from "../screens/settings/EditProfileScreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
-import { StyleSheet, Text } from "react-native";
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
