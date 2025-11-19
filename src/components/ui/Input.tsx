@@ -56,7 +56,7 @@ export const Input: React.FC<InputProps> = ({
             style={styles.rightIcon}
             onPress={() => setIsSecure(!isSecure)}
           >
-            <Text style={styles.eyeIcon}>{isSecure ? "👁️" : "🙈"}</Text>
+            <Text style={styles.eyeIcon}>{isSecure ? "Show" : "Hide"}</Text>
           </TouchableOpacity>
         )}
 
@@ -108,7 +108,8 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   eyeIcon: {
-    fontSize: 20,
+    fontSize: 13,
+    color: "#ccc",
   },
   error: {
     fontSize: 12,

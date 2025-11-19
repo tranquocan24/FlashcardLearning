@@ -33,10 +33,17 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="EditFlashcard" component={EditFlashcardScreen} />
       {/* Learning screens - Phase 3 */}
       <HomeStack.Screen name="LearningMode" component={LearningModeScreen} />
-      <HomeStack.Screen name="FlashcardStudy" component={FlashcardStudyScreen} />
+      <HomeStack.Screen
+        name="FlashcardStudy"
+        component={FlashcardStudyScreen}
+      />
       <HomeStack.Screen name="Quiz" component={QuizScreen} />
       <HomeStack.Screen name="Match" component={MatchScreen} />
-      <HomeStack.Screen name="Result" component={ResultScreen} options={{ headerShown: false }} />
+      <HomeStack.Screen
+        name="Result"
+        component={ResultScreen}
+        options={{ headerShown: false }}
+      />
     </HomeStack.Navigator>
   );
 }

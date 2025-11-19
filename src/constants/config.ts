@@ -2,7 +2,7 @@
 
 // API Configuration
 export const API_URL = __DEV__
-  ? 'http://192.168.1.63:3000'  // Development - backend port is 3000
+  ? 'http://192.168.2.6:3000'  // Development - backend port is 3000
   : 'https://api.flashcardlearning.com'; // Production
 
 export const API_TIMEOUT = 10000; // 10 seconds
