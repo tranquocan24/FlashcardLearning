@@ -340,20 +340,18 @@ App Start
 - [x] Implement session saving
 
 ### Phase 4: User Profile & Settings (Week 4)
-- [ ] Create SettingsScreen
-- [ ] Create EditProfileScreen
-  - [ ] Image picker for avatar
-  - [ ] Update profile API
-- [ ] Create ChangePasswordScreen
-- [ ] Implement logout functionality
-- [ ] Add avatar upload (if needed)
+- [x] Create SettingsScreen
+- [x] Create EditProfileScreen
+  - [x] Update profile API
+- [x] Create ChangePasswordScreen
+- [x] Implement logout functionality
 
 ### Phase 5: Polish & Testing (Week 5)
-- [ ] Add loading states
-- [ ] Add error handling
-- [ ] Implement pull-to-refresh
-- [ ] Add search functionality
-- [ ] Add filters (My Decks/Public)
+- [x] Add loading states
+- [x] Add error handling
+- [x] Implement pull-to-refresh
+- [x] Add search functionality
+- [x] Add filters (My Decks/Public)
 - [ ] Improve UI/UX
 - [ ] Add animations
 - [ ] Testing on Android/iOS

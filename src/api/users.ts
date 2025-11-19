@@ -24,8 +24,9 @@ export const usersAPI = {
   },
 
   // Update user profile
-  async updateProfile(userId: string, data: {
+  async updateUser(userId: string, data: {
     username?: string;
+    email?: string;
     avatar_url?: string;
   }): Promise<User> {
     try {
