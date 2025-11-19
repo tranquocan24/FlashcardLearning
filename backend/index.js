@@ -329,12 +329,24 @@ app.get('/users/:userId', async (req, res) => {
 // Update user profile
 app.put('/users/:userId', async (req, res) => {
     const { userId } = req.params;
-    const { username, avatar_url } = req.body;
+    const { username, email, avatar_url } = req.body;
 
     try {
+        // Check if email is being changed and if it's already taken
+        if (email) {
+            const existingUser = await pool.query(
+                'SELECT id FROM users WHERE email = $1 AND id != $2',
+                [email, userId]
+            );
+
+            if (existingUser.rows.length > 0) {
+                return res.status(400).json({ error: 'Email already in use' });
+            }
+        }
+
         const result = await pool.query(
-            'UPDATE users SET username = COALESCE($1, username), avatar_url = COALESCE($2, avatar_url), updated_at = NOW() WHERE id = $3 RETURNING id, username, email, avatar_url',
-            [username, avatar_url, userId]
+            'UPDATE users SET username = COALESCE($1, username), email = COALESCE($2, email), avatar_url = COALESCE($3, avatar_url), updated_at = NOW() WHERE id = $4 RETURNING id, username, email, avatar_url',
+            [username, email, avatar_url, userId]
         );
 
         if (result.rows.length === 0) {

@@ -1,11 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Text } from "react-native";
-import {
-  HomeStackParamList,
-  MainTabParamList,
-  SettingsStackParamList,
-} from "./types";
+import { HomeStackParamList, MainTabParamList, SettingsStackParamList } from "./types";
 
 // Home Stack Screens
 import AddFlashcardScreen from "../screens/flashcard/AddFlashcardScreen";
@@ -21,7 +16,8 @@ import MatchScreen from "../screens/learning/MatchScreen";
 import QuizScreen from "../screens/learning/QuizScreen";
 import ResultScreen from "../screens/learning/ResultScreen";
 
-// Settings Stack Screens (Phase 4)
+// Settings Screens (Phase 4)
+import { Text } from "react-native";
 import ChangePasswordScreen from "../screens/settings/ChangePasswordScreen";
 import EditProfileScreen from "../screens/settings/EditProfileScreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
@@ -58,24 +54,8 @@ function SettingsStackNavigator() {
   return (
     <SettingsStack.Navigator screenOptions={{ headerShown: false }}>
       <SettingsStack.Screen name="SettingsScreen" component={SettingsScreen} />
-      <SettingsStack.Screen
-        name="EditProfile"
-        component={EditProfileScreen}
-        options={{
-          headerShown: true,
-          title: "Edit Profile",
-          headerBackTitle: "Back",
-        }}
-      />
-      <SettingsStack.Screen
-        name="ChangePassword"
-        component={ChangePasswordScreen}
-        options={{
-          headerShown: true,
-          title: "Change Password",
-          headerBackTitle: "Back",
-        }}
-      />
+      <SettingsStack.Screen name="EditProfile" component={EditProfileScreen} />
+      <SettingsStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     </SettingsStack.Navigator>
   );
 }

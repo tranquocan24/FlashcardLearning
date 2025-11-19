@@ -1,5 +1,5 @@
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
     Alert,
@@ -15,12 +15,12 @@ import {
 } from 'react-native';
 import { decksAPI } from '../../api/decks';
 import { useAuth } from '../../hooks/useAuth';
-import { HomeStackParamList } from '../../navigation/types';
+import { MainTabParamList } from '../../navigation/types';
 import { generateUUID } from '../../utils/uuid';
 
-type CreateDeckScreenNavigationProp = NativeStackNavigationProp<
-    HomeStackParamList,
-    'HomeScreen'
+type CreateDeckScreenNavigationProp = BottomTabNavigationProp<
+    MainTabParamList,
+    'CreateDeck'
 >;
 
 export default function CreateDeckScreen() {
@@ -56,12 +56,17 @@ export default function CreateDeckScreen() {
 
             const createdDeck = await decksAPI.createDeck(newDeck);
 
+            // Reset form
+            setTitle('');
+            setDescription('');
+            setIsPublic(false);
+
             Alert.alert('Success', 'Deck created successfully!', [
                 {
                     text: 'OK',
                     onPress: () => {
-                        // Navigate to DeckDetail screen
-                        navigation.navigate('DeckDetail', { deckId: createdDeck.id });
+                        // Navigate to My Decks tab
+                        navigation.navigate('Home');
                     },
                 },
             ]);
@@ -83,12 +88,17 @@ export default function CreateDeckScreen() {
                     {
                         text: 'Discard',
                         style: 'destructive',
-                        onPress: () => navigation.goBack(),
+                        onPress: () => {
+                            setTitle('');
+                            setDescription('');
+                            setIsPublic(false);
+                            navigation.navigate('Home');
+                        },
                     },
                 ]
             );
         } else {
-            navigation.goBack();
+            navigation.navigate('Home');
         }
     };
 
