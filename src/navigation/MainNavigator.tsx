@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeStackParamList, MainTabParamList, SettingsStackParamList } from "./types";
@@ -17,7 +18,6 @@ import QuizScreen from "../screens/learning/QuizScreen";
 import ResultScreen from "../screens/learning/ResultScreen";
 
 // Settings Screens (Phase 4)
-import { Text } from "react-native";
 import ChangePasswordScreen from "../screens/settings/ChangePasswordScreen";
 import EditProfileScreen from "../screens/settings/EditProfileScreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
@@ -83,8 +83,12 @@ export default function MainNavigator() {
         component={HomeStackNavigator}
         options={{
           title: "My Decks",
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>📚</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -94,8 +98,12 @@ export default function MainNavigator() {
         options={{
           title: "Create",
           headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>➕</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "add-circle" : "add-circle-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -104,8 +112,12 @@ export default function MainNavigator() {
         component={SettingsStackNavigator}
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>⚙️</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "settings" : "settings-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

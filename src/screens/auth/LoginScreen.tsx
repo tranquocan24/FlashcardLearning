@@ -58,7 +58,7 @@ export default function LoginScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back!</Text>
+          <Text style={styles.title}>Flashcard Learning</Text>
           <Text style={styles.subtitle}>Login to continue learning</Text>
         </View>
 
