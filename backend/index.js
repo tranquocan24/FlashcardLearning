@@ -4,6 +4,9 @@ const cors = require('cors');
 const { Pool } = require('pg');
 require('dotenv').config();
 
+const { generateToken, authenticateToken } = require('./middleware/auth');
+const { hashPassword, comparePassword } = require('./utils/password');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -45,6 +48,13 @@ app.post('/api/auth/register', async (req, res) => {
     const { id, username, email, password } = req.body;
 
     try {
+        if (!id || !username || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'All fields are required'
+            });
+        }
+
         // Check if email already exists
         const existingUser = await pool.query(
             'SELECT id FROM users WHERE email = $1',
@@ -58,15 +68,24 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
 
-        // Insert new user (password should be hashed in production)
+        // Hash password
+        const hashedPassword = await hashPassword(password);
+
+        // Insert new user with hashed password
         const result = await pool.query(
             'INSERT INTO users (id, username, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id, username, email, avatar_url',
-            [id, username, email, password]
+            [id, username, email, hashedPassword]
         );
+
+        const user = result.rows[0];
+
+        // Generate JWT token
+        const token = generateToken(user);
 
         res.status(201).json({
             success: true,
-            user: result.rows[0],
+            user: user,
+            token: token,
             message: 'User registered successfully'
         });
     } catch (err) {
@@ -80,6 +99,13 @@ app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email and password are required'
+            });
+        }
+
         const result = await pool.query(
             'SELECT id, username, email, avatar_url, password FROM users WHERE email = $1',
             [email]
@@ -94,8 +120,10 @@ app.post('/api/auth/login', async (req, res) => {
 
         const user = result.rows[0];
 
-        // Simple password check (should use bcrypt in production)
-        if (user.password !== password) {
+        // Verify password with bcrypt
+        const isPasswordValid = await comparePassword(password, user.password);
+
+        if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid email or password'
@@ -105,9 +133,13 @@ app.post('/api/auth/login', async (req, res) => {
         // Remove password from response
         delete user.password;
 
+        // Generate JWT token
+        const token = generateToken(user);
+
         res.json({
             success: true,
-            user: user
+            user: user,
+            token: token
         });
     } catch (err) {
         console.error('Error logging in:', err);
@@ -116,9 +148,10 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Get all decks (public hoặc của user cụ thể)
-app.get('/decks', async (req, res) => {
+app.get('/decks', authenticateToken, async (req, res) => {
     try {
-        const { userId } = req.query; // Optional: filter by user
+        // Use authenticated user's ID
+        const userId = req.user.id;
 
         let query = `
             SELECT d.*, u.username as owner_name, u.email as owner_email,
@@ -129,7 +162,7 @@ app.get('/decks', async (req, res) => {
             ORDER BY d.created_at DESC
         `;
 
-        const result = await pool.query(query, [userId || '00000000-0000-0000-0000-000000000000']);
+        const result = await pool.query(query, [userId]);
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching decks:', err);
@@ -161,13 +194,14 @@ app.get('/decks/:deckId', async (req, res) => {
 });
 
 // Create new deck
-app.post('/decks', async (req, res) => {
-    const { id, title, description, owner_id, is_public } = req.body;
+app.post('/decks', authenticateToken, async (req, res) => {
+    const { id, title, description, is_public } = req.body;
 
     try {
+        // Use authenticated user's ID as owner
         const result = await pool.query(
             'INSERT INTO decks (id, title, description, owner_id, is_public, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *',
-            [id, title, description, owner_id, is_public || false]
+            [id, title, description, req.user.id, is_public || false]
         );
 
         res.status(201).json(result.rows[0]);
@@ -178,11 +212,20 @@ app.post('/decks', async (req, res) => {
 });
 
 // Update deck
-app.put('/decks/:deckId', async (req, res) => {
+app.put('/decks/:deckId', authenticateToken, async (req, res) => {
     const { deckId } = req.params;
     const { title, description, is_public } = req.body;
 
     try {
+        // Verify ownership before updating
+        const ownerCheck = await pool.query('SELECT owner_id FROM decks WHERE id = $1', [deckId]);
+        if (ownerCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Deck not found' });
+        }
+        if (ownerCheck.rows[0].owner_id !== req.user.id) {
+            return res.status(403).json({ error: 'You do not have permission to update this deck' });
+        }
+
         const result = await pool.query(
             'UPDATE decks SET title = COALESCE($1, title), description = COALESCE($2, description), is_public = COALESCE($3, is_public), updated_at = NOW() WHERE id = $4 RETURNING *',
             [title, description, is_public, deckId]
@@ -200,10 +243,19 @@ app.put('/decks/:deckId', async (req, res) => {
 });
 
 // Delete deck
-app.delete('/decks/:deckId', async (req, res) => {
+app.delete('/decks/:deckId', authenticateToken, async (req, res) => {
     const { deckId } = req.params;
 
     try {
+        // Verify ownership before deleting
+        const ownerCheck = await pool.query('SELECT owner_id FROM decks WHERE id = $1', [deckId]);
+        if (ownerCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Deck not found' });
+        }
+        if (ownerCheck.rows[0].owner_id !== req.user.id) {
+            return res.status(403).json({ error: 'You do not have permission to delete this deck' });
+        }
+
         const result = await pool.query('DELETE FROM decks WHERE id = $1 RETURNING id', [deckId]);
 
         if (result.rows.length === 0) {
@@ -235,10 +287,19 @@ app.get('/flashcards/:deckId', async (req, res) => {
 });
 
 // Create new flashcard
-app.post('/flashcards', async (req, res) => {
+app.post('/flashcards', authenticateToken, async (req, res) => {
     const { id, deck_id, word, meaning, example, media_url } = req.body;
 
     try {
+        // Verify user owns the deck before creating flashcard
+        const deckCheck = await pool.query('SELECT owner_id FROM decks WHERE id = $1', [deck_id]);
+        if (deckCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Deck not found' });
+        }
+        if (deckCheck.rows[0].owner_id !== req.user.id) {
+            return res.status(403).json({ error: 'You do not have permission to add flashcards to this deck' });
+        }
+
         const result = await pool.query(
             'INSERT INTO flashcards (id, deck_id, word, meaning, example, media_url, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *',
             [id, deck_id, word, meaning, example, media_url]
@@ -252,11 +313,23 @@ app.post('/flashcards', async (req, res) => {
 });
 
 // Update flashcard
-app.put('/flashcards/:flashcardId', async (req, res) => {
+app.put('/flashcards/:flashcardId', authenticateToken, async (req, res) => {
     const { flashcardId } = req.params;
     const { word, meaning, example, media_url } = req.body;
 
     try {
+        // Verify user owns the deck that contains this flashcard
+        const flashcardCheck = await pool.query(
+            'SELECT f.deck_id, d.owner_id FROM flashcards f JOIN decks d ON f.deck_id = d.id WHERE f.id = $1',
+            [flashcardId]
+        );
+        if (flashcardCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Flashcard not found' });
+        }
+        if (flashcardCheck.rows[0].owner_id !== req.user.id) {
+            return res.status(403).json({ error: 'You do not have permission to update this flashcard' });
+        }
+
         const result = await pool.query(
             'UPDATE flashcards SET word = COALESCE($1, word), meaning = COALESCE($2, meaning), example = COALESCE($3, example), media_url = COALESCE($4, media_url), updated_at = NOW() WHERE id = $5 RETURNING *',
             [word, meaning, example, media_url, flashcardId]
@@ -274,10 +347,22 @@ app.put('/flashcards/:flashcardId', async (req, res) => {
 });
 
 // Delete flashcard
-app.delete('/flashcards/:flashcardId', async (req, res) => {
+app.delete('/flashcards/:flashcardId', authenticateToken, async (req, res) => {
     const { flashcardId } = req.params;
 
     try {
+        // Verify user owns the deck that contains this flashcard
+        const flashcardCheck = await pool.query(
+            'SELECT f.deck_id, d.owner_id FROM flashcards f JOIN decks d ON f.deck_id = d.id WHERE f.id = $1',
+            [flashcardId]
+        );
+        if (flashcardCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Flashcard not found' });
+        }
+        if (flashcardCheck.rows[0].owner_id !== req.user.id) {
+            return res.status(403).json({ error: 'You do not have permission to delete this flashcard' });
+        }
+
         const result = await pool.query('DELETE FROM flashcards WHERE id = $1 RETURNING id', [flashcardId]);
 
         if (result.rows.length === 0) {
@@ -327,11 +412,16 @@ app.get('/users/:userId', async (req, res) => {
 });
 
 // Update user profile
-app.put('/users/:userId', async (req, res) => {
+app.put('/users/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { username, email, avatar_url } = req.body;
 
     try {
+        // Verify user can only update their own profile
+        if (userId !== req.user.id) {
+            return res.status(403).json({ error: 'You can only update your own profile' });
+        }
+
         // Check if email is being changed and if it's already taken
         if (email) {
             const existingUser = await pool.query(
@@ -361,11 +451,16 @@ app.put('/users/:userId', async (req, res) => {
 });
 
 // Change password
-app.put('/users/:userId/password', async (req, res) => {
+app.put('/users/:userId/password', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { currentPassword, newPassword } = req.body;
 
     try {
+        // Verify user can only change their own password
+        if (userId !== req.user.id) {
+            return res.status(403).json({ error: 'You can only change your own password' });
+        }
+
         // Verify current password
         const user = await pool.query(
             'SELECT password FROM users WHERE id = $1',
@@ -376,14 +471,19 @@ app.put('/users/:userId/password', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        if (user.rows[0].password !== currentPassword) {
+        // Verify current password with bcrypt
+        const isPasswordValid = await comparePassword(currentPassword, user.rows[0].password);
+        if (!isPasswordValid) {
             return res.status(401).json({ error: 'Current password is incorrect' });
         }
+
+        // Hash new password
+        const hashedNewPassword = await hashPassword(newPassword);
 
         // Update password
         await pool.query(
             'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2',
-            [newPassword, userId]
+            [hashedNewPassword, userId]
         );
 
         res.json({ success: true, message: 'Password changed successfully' });
@@ -396,9 +496,14 @@ app.put('/users/:userId/password', async (req, res) => {
 // ==================== DECK APIs ====================
 
 // Get user progress for a deck
-app.get('/progress/:userId/:deckId', async (req, res) => {
+app.get('/progress/:userId/:deckId', authenticateToken, async (req, res) => {
     const { userId, deckId } = req.params;
     try {
+        // Verify user can only access their own progress
+        if (userId !== req.user.id) {
+            return res.status(403).json({ error: 'You can only access your own progress' });
+        }
+
         const result = await pool.query(`
             SELECT p.*, f.word, f.meaning 
             FROM progress p
@@ -413,10 +518,13 @@ app.get('/progress/:userId/:deckId', async (req, res) => {
 });
 
 // Update progress
-app.post('/progress', async (req, res) => {
+app.post('/progress', authenticateToken, async (req, res) => {
     const { id, user_id, flashcard_id, ease, interval, next_review_at, times_seen } = req.body;
 
     try {
+        // Use authenticated user's ID instead of req.body.user_id
+        const user_id = req.user.id;
+
         // Check if progress exists
         const existing = await pool.query(
             'SELECT id FROM progress WHERE user_id = $1 AND flashcard_id = $2',
@@ -446,9 +554,14 @@ app.post('/progress', async (req, res) => {
 });
 
 // Get sessions by user
-app.get('/sessions/:userId', async (req, res) => {
+app.get('/sessions/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     try {
+        // Verify user can only access their own sessions
+        if (userId !== req.user.id) {
+            return res.status(403).json({ error: 'You can only access your own sessions' });
+        }
+
         const result = await pool.query(`
             SELECT s.*, d.title as deck_title
             FROM sessions s
@@ -464,22 +577,23 @@ app.get('/sessions/:userId', async (req, res) => {
 });
 
 // Create new session
-app.post('/sessions', async (req, res) => {
+app.post('/sessions', authenticateToken, async (req, res) => {
     const { id, user_id, deck_id, session_type, score, total_cards } = req.body;
 
     // Debug logging
     console.log('Received session data:', { id, user_id, deck_id, session_type, score, total_cards });
 
     // Validate required fields
-    if (!id || !user_id || !deck_id || !session_type || score === undefined || total_cards === undefined) {
-        console.error('Missing required fields:', { id, user_id, deck_id, session_type, score, total_cards });
+    if (!id || !deck_id || !session_type || score === undefined || total_cards === undefined) {
+        console.error('Missing required fields:', { id, deck_id, session_type, score, total_cards });
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
     try {
+        // Use authenticated user's ID
         const result = await pool.query(
             'INSERT INTO sessions (id, user_id, deck_id, type, total, correct, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
-            [id, user_id, deck_id, session_type, total_cards, score]
+            [id, req.user.id, deck_id, session_type, total_cards, score]
         );
 
         res.status(201).json(result.rows[0]);

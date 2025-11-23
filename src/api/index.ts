@@ -1,6 +1,7 @@
 // src/api/index.js
 import axios from 'axios';
-import { API_URL, API_TIMEOUT } from '../constants/config';
+import { API_TIMEOUT, API_URL, STORAGE_KEYS } from '../constants/config';
+import { storage } from '../utils/storage';
 
 const API = axios.create({
   baseURL: API_URL,
@@ -12,12 +13,18 @@ const API = axios.create({
 
 // Request interceptor - add auth token if available
 API.interceptors.request.use(
-  (config) => {
-    // TODO: Add JWT token from storage
-    // const token = await storage.getItem(STORAGE_KEYS.TOKEN);
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+  async (config) => {
+    try {
+      const token = await storage.getItem<string>(STORAGE_KEYS.TOKEN);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('Token added to request:', config.url);
+      } else {
+        console.log('No token found for request:', config.url);
+      }
+    } catch (error) {
+      console.error('Error getting token:', error);
+    }
     return config;
   },
   (error) => {

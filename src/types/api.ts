@@ -39,3 +39,4 @@ export interface ApiError {
 }
 
 export type ApiResponse<T> = T | ApiError;
+

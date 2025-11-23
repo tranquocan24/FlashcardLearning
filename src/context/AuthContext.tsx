@@ -56,9 +56,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Attempting login...');
       const response = await authAPI.login({ email, password });
+      console.log('Login response:', response);
 
       if (response.success && response.user) {
+        if (response.token) {
+          console.log('Saving token to storage...');
+          await storage.setItem(STORAGE_KEYS.TOKEN, response.token);
+          console.log('Token saved successfully');
+        } else {
+          console.warn('No token in response!');
+        }
+
+        // Now create user data and save
         const userData: User = {
           id: response.user.id,
           username: response.user.username,
@@ -68,17 +79,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           updated_at: new Date().toISOString(),
         };
 
-        setUser(userData);
         await storage.setItem(STORAGE_KEYS.USER, userData);
 
-        if (response.token) {
-          await storage.setItem(STORAGE_KEYS.TOKEN, response.token);
-        }
+        // Set user LAST - this triggers navigation
+        setUser(userData);
+        console.log('✅ Login complete!');
       } else {
         throw new Error("Login failed");
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
       throw error;
     }
   };
@@ -102,6 +112,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       throw error;
     }
   };
+
 
   const logout = async () => {
     try {

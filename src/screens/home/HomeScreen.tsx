@@ -21,7 +21,7 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<HomeStackParamList, 'H
 
 export default function HomeScreen() {
     const navigation = useNavigation<HomeScreenNavigationProp>();
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
 
     const [decks, setDecks] = useState<Deck[]>([]);
     const [filteredDecks, setFilteredDecks] = useState<Deck[]>([]);
@@ -31,7 +31,15 @@ export default function HomeScreen() {
     const [filter, setFilter] = useState<'all' | 'my' | 'public'>('all');
 
     const fetchDecks = useCallback(async () => {
+        // Only fetch if user is authenticated
+        if (!isAuthenticated || !user) {
+            console.log('Skipping fetch - user not authenticated');
+            setIsLoading(false);
+            return;
+        }
+
         try {
+            console.log('Fetching decks...');
             setIsLoading(true);
             const data = await decksAPI.getDecks(user?.id);
             setDecks(data);
@@ -40,7 +48,7 @@ export default function HomeScreen() {
         } finally {
             setIsLoading(false);
         }
-    }, [user?.id]);
+    }, [user?.id, isAuthenticated]);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);

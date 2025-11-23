@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
     Alert,
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -10,6 +11,19 @@ import {
 } from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
 import { SettingsStackParamList } from '../../navigation/types';
+
+// Avatar images mapping
+const AVATARS = {
+    boy: require("../../resources/images/boy.png"),
+    cat: require("../../resources/images/cat.png"),
+    gamer: require("../../resources/images/gamer.png"),
+    hacker: require("../../resources/images/hacker.png"),
+    man: require("../../resources/images/man.png"),
+    profile: require("../../resources/images/profile.png"),
+    woman: require("../../resources/images/woman.png"),
+};
+
+type AvatarKey = keyof typeof AVATARS;
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<
     SettingsStackParamList,
@@ -77,9 +91,16 @@ export default function SettingsScreen() {
                 <View style={styles.section}>
                     <View style={styles.userCard}>
                         <View style={styles.avatarContainer}>
-                            <Text style={styles.avatarText}>
-                                {user?.username?.[0]?.toUpperCase() || 'U'}
-                            </Text>
+                            {user?.avatar_url ? (
+                                <Image
+                                    source={AVATARS[(user.avatar_url.replace('.png', '')) as AvatarKey] || AVATARS.profile}
+                                    style={styles.avatarImage}
+                                />
+                            ) : (
+                                <Text style={styles.avatarText}>
+                                    {user?.username?.[0]?.toUpperCase() || 'U'}
+                                </Text>
+                            )}
                         </View>
                         <View style={styles.userInfo}>
                             <Text style={styles.username}>{user?.username || 'User'}</Text>
@@ -188,6 +209,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
     },
     avatarText: {
         fontSize: 28,
