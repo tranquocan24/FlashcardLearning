@@ -74,18 +74,19 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
 
     const handleKnown = () => {
         const currentCard = flashcards[currentIndex];
-        setKnownCards((prev) => new Set([...prev, currentCard.id]));
-        goToNext();
+        const newKnownCards = new Set([...knownCards, currentCard.id]);
+        setKnownCards(newKnownCards);
+        goToNext(newKnownCards);
     };
 
     const handleNotKnown = () => {
         goToNext();
     };
 
-    const goToNext = () => {
+    const goToNext = (currentKnownCards?: Set<string>) => {
         if (currentIndex >= flashcards.length - 1) {
             // Finished all cards
-            const correct = knownCards.size;
+            const correct = (currentKnownCards || knownCards).size;
             const total = flashcards.length;
             navigation.replace('Result', {
                 type: 'FLASHCARD',
