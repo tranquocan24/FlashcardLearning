@@ -170,7 +170,7 @@ app.post('/api/auth/google', async (req, res) => {
         if (result.rows.length > 0) {
             // User exists, update google_id if not set
             user = result.rows[0];
-            
+
             if (!user.google_id) {
                 await pool.query(
                     'UPDATE users SET google_id = $1, avatar_url = $2, updated_at = NOW() WHERE id = $3',
@@ -183,12 +183,12 @@ app.post('/api/auth/google', async (req, res) => {
             // Create new user with Google info
             const { v4: uuidv4 } = require('uuid');
             const newUserId = uuidv4();
-            
+
             result = await pool.query(
                 'INSERT INTO users (id, username, email, google_id, avatar_url, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id, username, email, avatar_url, google_id',
                 [newUserId, name, email, googleId, photo, ''] // Empty password for Google users
             );
-            
+
             user = result.rows[0];
         }
 

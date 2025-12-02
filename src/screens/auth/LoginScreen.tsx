@@ -9,13 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { authAPI } from "../../api/auth";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useAuth } from "../../hooks/useAuth";
-import { validateEmail, validatePassword } from "../../utils/validation";
 import GoogleAuthService from "../../services/GoogleAuthService";
-import { authAPI } from "../../api/auth";
 import { storage } from "../../utils/storage";
+import { validateEmail, validatePassword } from "../../utils/validation";
 
 export default function LoginScreen({ navigation }: any) {
   const { login, updateUser } = useAuth();
@@ -57,35 +57,35 @@ export default function LoginScreen({ navigation }: any) {
     setIsGoogleLoading(true);
     try {
       const result = await GoogleAuthService.signIn();
-      
+
       console.log('Google Sign-In result:', JSON.stringify(result, null, 2));
-      
+
       if (result.success && result.data) {
         console.log('Google data structure:', JSON.stringify(result, null, 2));
-        
+
         // Google Sign-In returns: {type: 'success', data: {user: {...}, idToken: ...}}
         const googleData = result.data.data || result.data;
         const userData = googleData.user;
-        
+
         if (!userData) {
           Alert.alert("Error", "No user data received from Google");
           console.error('Full result:', result);
           return;
         }
-        
+
         const googleId = userData.id;
         const email = userData.email;
         const name = userData.name || userData.givenName || 'User';
         const photo = userData.photo;
-        
+
         if (!googleId || !email) {
           Alert.alert("Error", "Missing required user information from Google");
           console.error('Missing data:', { googleId, email });
           return;
         }
-        
+
         console.log('Calling backend with:', { googleId, email, name, photo });
-        
+
         // Call backend API to create/login user with Google
         const response = await authAPI.googleLogin({
           googleId,
@@ -93,15 +93,15 @@ export default function LoginScreen({ navigation }: any) {
           name,
           photo,
         });
-        
+
         if (response.success && response.user && response.token) {
           // Save user data and token
           await storage.setUser(response.user);
           await storage.setToken(response.token);
-          
+
           // Update AuthContext user state to trigger navigation
           updateUser(response.user);
-          
+
           Alert.alert(
             "Welcome!",
             `Signed in successfully as ${response.user.username}`

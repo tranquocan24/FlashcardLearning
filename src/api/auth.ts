@@ -26,7 +26,7 @@ export const authAPI = {
     try {
       // Generate UUID on client side
       const userId = generateUUID();
-      
+
       const response = await API.post('/api/auth/register', {
         id: userId,
         ...data,
