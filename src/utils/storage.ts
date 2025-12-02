@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEYS } from '../constants/config';
 
 export const storage = {
   // Save data
@@ -16,7 +17,7 @@ export const storage = {
   async getItem<T>(key: string): Promise<T | null> {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      return jsonValue === null ? null : JSON.parse(jsonValue);
     } catch (error) {
       console.error(`Error reading ${key}:`, error);
       return null;
@@ -41,5 +42,31 @@ export const storage = {
       console.error('Error clearing storage:', error);
       throw error;
     }
+  },
+
+  // User helpers
+  async setUser(user: any): Promise<void> {
+    return this.setItem(STORAGE_KEYS.USER, user);
+  },
+
+  async getUser<T>(): Promise<T | null> {
+    return this.getItem<T>(STORAGE_KEYS.USER);
+  },
+
+  async removeUser(): Promise<void> {
+    return this.removeItem(STORAGE_KEYS.USER);
+  },
+
+  // Token helpers
+  async setToken(token: string): Promise<void> {
+    return this.setItem(STORAGE_KEYS.TOKEN, token);
+  },
+
+  async getToken(): Promise<string | null> {
+    return this.getItem<string>(STORAGE_KEYS.TOKEN);
+  },
+
+  async removeToken(): Promise<void> {
+    return this.removeItem(STORAGE_KEYS.TOKEN);
   },
 };

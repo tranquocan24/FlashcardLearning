@@ -147,6 +147,71 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// Google Sign-In
+app.post('/api/auth/google', async (req, res) => {
+    const { googleId, email, name, photo } = req.body;
+
+    try {
+        if (!googleId || !email || !name) {
+            return res.status(400).json({
+                success: false,
+                error: 'Google ID, email, and name are required'
+            });
+        }
+
+        // Check if user exists by email or google_id
+        let result = await pool.query(
+            'SELECT id, username, email, avatar_url, google_id FROM users WHERE email = $1 OR google_id = $2',
+            [email, googleId]
+        );
+
+        let user;
+
+        if (result.rows.length > 0) {
+            // User exists, update google_id if not set
+            user = result.rows[0];
+            
+            if (!user.google_id) {
+                await pool.query(
+                    'UPDATE users SET google_id = $1, avatar_url = $2, updated_at = NOW() WHERE id = $3',
+                    [googleId, photo || user.avatar_url, user.id]
+                );
+                user.google_id = googleId;
+                if (photo) user.avatar_url = photo;
+            }
+        } else {
+            // Create new user with Google info
+            const { v4: uuidv4 } = require('uuid');
+            const newUserId = uuidv4();
+            
+            result = await pool.query(
+                'INSERT INTO users (id, username, email, google_id, avatar_url, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id, username, email, avatar_url, google_id',
+                [newUserId, name, email, googleId, photo, ''] // Empty password for Google users
+            );
+            
+            user = result.rows[0];
+        }
+
+        // Generate JWT token
+        const token = generateToken(user);
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                avatar_url: user.avatar_url
+            },
+            token: token,
+            message: user.google_id ? 'Login successful' : 'Account created successfully'
+        });
+    } catch (err) {
+        console.error('Error with Google sign-in:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Get all decks (public hoặc của user cụ thể)
 app.get('/decks', authenticateToken, async (req, res) => {
     try {
@@ -610,6 +675,7 @@ app.listen(PORT, () => {
     console.log(`\n  Auth:`);
     console.log(`   POST http://localhost:${PORT}/api/auth/register`);
     console.log(`   POST http://localhost:${PORT}/api/auth/login`);
+    console.log(`   POST http://localhost:${PORT}/api/auth/google`);
     console.log(`\n  Users:`);
     console.log(`   GET  http://localhost:${PORT}/users`);
     console.log(`   GET  http://localhost:${PORT}/users/:userId`);
