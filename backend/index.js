@@ -173,6 +173,8 @@ app.get('/decks', authenticateToken, async (req, res) => {
 // Get deck by ID
 app.get('/decks/:deckId', async (req, res) => {
     const { deckId } = req.params;
+    const userId = req.user.id;
+
     try {
         const result = await pool.query(`
             SELECT d.*, u.username as owner_name,
@@ -180,7 +182,8 @@ app.get('/decks/:deckId', async (req, res) => {
             FROM decks d
             LEFT JOIN users u ON d.owner_id = u.id
             WHERE d.id = $1
-        `, [deckId]);
+            AND (d.is_public = true OR d.owner_id = $2)
+        `, [deckId, userId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Deck not found' });
@@ -605,8 +608,8 @@ app.post('/sessions', authenticateToken, async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`\n🚀 Backend running on port ${PORT}`);
-    console.log(`📡 API endpoints:`);
+    console.log(`\n Backend running on port ${PORT}`);
+    console.log(`API endpoints:`);
     console.log(`\n  Auth:`);
     console.log(`   POST http://localhost:${PORT}/api/auth/register`);
     console.log(`   POST http://localhost:${PORT}/api/auth/login`);

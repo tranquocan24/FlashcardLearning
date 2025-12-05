@@ -40,16 +40,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const loadUser = async () => {
     try {
-      console.log("🔄 Loading user from storage...");
+      console.log("Loading user from storage...");
       const savedUser = await storage.getItem<User>(STORAGE_KEYS.USER);
-      console.log("👤 Saved user:", savedUser);
+      console.log("Saved user:", savedUser);
       if (savedUser) {
         setUser(savedUser);
       }
     } catch (error) {
-      console.error("❌ Error loading user:", error);
+      console.error("Error loading user:", error);
     } finally {
-      console.log("✅ Setting isLoading to false");
+      console.log("Setting isLoading to false");
       setIsLoading(false);
     }
   };
@@ -83,12 +83,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
         // Set user LAST - this triggers navigation
         setUser(userData);
-        console.log('✅ Login complete!');
+        console.log('Login complete!');
       } else {
         throw new Error("Login failed");
       }
     } catch (error: any) {
-      console.error("❌ Login error:", error);
+      console.error("Login error:", error);
       throw error;
     }
   };
