@@ -29,13 +29,17 @@ class GoogleAuthService {
 
     async signIn() {
         try {
+            console.log('=== Google Sign-In Start ===');
             console.log('Checking Play Services...');
             await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
             console.log('Starting Google Sign-In...');
             const result = await GoogleSignin.signIn();
 
-            console.log('Google Sign-In raw result:', JSON.stringify(result, null, 2));
+            console.log('Google Sign-In SUCCESS');
+            console.log('Result type:', typeof result);
+            console.log('Result keys:', result ? Object.keys(result) : 'null');
+            console.log('Full result:', JSON.stringify(result, null, 2));
 
             if (!result) {
                 return {
@@ -49,12 +53,29 @@ class GoogleAuthService {
                 data: result,
             };
         } catch (error: any) {
-            console.error('Google Sign-In Error:', error);
-            console.error('Error code:', error.code);
-            console.error('Error message:', error.message);
+            console.error('=== Google Sign-In FAILED ===');
+            console.error('Error type:', typeof error);
+            console.error('Error code:', error?.code);
+            console.error('Error message:', error?.message);
+            console.error('Full error:', JSON.stringify(error, null, 2));
+            
+            let errorMessage = 'Failed to sign in with Google';
+            
+            // Handle specific error codes
+            if (error.code === 'SIGN_IN_CANCELLED') {
+                errorMessage = 'Sign-in was cancelled';
+            } else if (error.code === 'IN_PROGRESS') {
+                errorMessage = 'Sign-in already in progress';
+            } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+                errorMessage = 'Play Services not available';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             return {
                 success: false,
-                error: error.message || 'Failed to sign in with Google',
+                error: errorMessage,
+                errorCode: error?.code,
             };
         }
     }
