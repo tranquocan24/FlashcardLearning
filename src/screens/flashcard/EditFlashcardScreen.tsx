@@ -39,8 +39,8 @@ export default function EditFlashcardScreen() {
 
     const loadFlashcard = async () => {
         try {
-            const flashcards = await flashcardsAPI.getFlashcardsByDeck(deckId);
-            const flashcard = flashcards.find((f) => f.id === flashcardId);
+            const response = await flashcardsAPI.getFlashcardsByDeck(deckId);
+            const flashcard = response.data.find((f) => f.id === flashcardId);
 
             if (flashcard) {
                 setWord(flashcard.word);

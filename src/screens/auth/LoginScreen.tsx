@@ -6,21 +6,26 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { authAPI } from "../../api/auth";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useAuth } from "../../hooks/useAuth";
+import GoogleAuthService from "../../services/GoogleAuthService";
+import { storage } from "../../utils/storage";
 import { validateEmail, validatePassword } from "../../utils/validation";
 
 export default function LoginScreen({ navigation }: any) {
-  const { login } = useAuth();
+  const { login, updateUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleLogin = async () => {
     // Validate inputs
@@ -45,6 +50,71 @@ export default function LoginScreen({ navigation }: any) {
       Alert.alert("Login Failed", error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const result = await GoogleAuthService.signIn();
+
+      console.log('Google Sign-In result:', JSON.stringify(result, null, 2));
+
+      if (result.success && result.data) {
+        console.log('Google data structure:', JSON.stringify(result, null, 2));
+
+        // Google Sign-In returns: {type: 'success', data: {user: {...}, idToken: ...}}
+        const googleData = result.data.data || result.data;
+        const userData = googleData.user;
+
+        if (!userData) {
+          Alert.alert("Error", "No user data received from Google");
+          console.error('Full result:', result);
+          return;
+        }
+
+        const googleId = userData.id;
+        const email = userData.email;
+        const name = userData.name || userData.givenName || 'User';
+        const photo = userData.photo;
+
+        if (!googleId || !email) {
+          Alert.alert("Error", "Missing required user information from Google");
+          console.error('Missing data:', { googleId, email });
+          return;
+        }
+
+        console.log('Calling backend with:', { googleId, email, name, photo });
+
+        // Call backend API to create/login user with Google
+        const response = await authAPI.googleLogin({
+          googleId,
+          email,
+          name,
+          photo,
+        });
+
+        if (response.success && response.user && response.token) {
+          // Save user data and token
+          await storage.setUser(response.user);
+          await storage.setToken(response.token);
+
+          // Update AuthContext user state to trigger navigation
+          updateUser(response.user);
+
+          Alert.alert(
+            "Welcome!",
+            `Signed in successfully as ${response.user.username}`
+          );
+        }
+      } else {
+        Alert.alert("Sign-In Failed", result.error || "Failed to sign in with Google");
+      }
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      Alert.alert("Error", error.message || "An error occurred during sign-in");
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -98,6 +168,23 @@ export default function LoginScreen({ navigation }: any) {
             style={styles.loginButton}
           />
 
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.divider} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={handleGoogleSignIn}
+            disabled={isGoogleLoading}
+          >
+            <Text style={styles.googleIcon}>G</Text>
+            <Text style={styles.googleButtonText}>
+              {isGoogleLoading ? "Signing in..." : "Continue with Google"}
+            </Text>
+          </TouchableOpacity>
+
           <View style={styles.registerContainer}>
             <Text style={styles.registerText}>Don't have an account? </Text>
             <Button
@@ -142,6 +229,45 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 8,
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E0E0E0",
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: "#999",
+    fontWeight: "500",
+  },
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DADCE0",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#4285F4",
+    marginRight: 12,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
   registerContainer: {
     flexDirection: "row",
