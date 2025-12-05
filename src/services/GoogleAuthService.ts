@@ -58,9 +58,9 @@ class GoogleAuthService {
             console.error('Error code:', error?.code);
             console.error('Error message:', error?.message);
             console.error('Full error:', JSON.stringify(error, null, 2));
-            
+
             let errorMessage = 'Failed to sign in with Google';
-            
+
             // Handle specific error codes
             if (error.code === 'SIGN_IN_CANCELLED') {
                 errorMessage = 'Sign-in was cancelled';
@@ -71,7 +71,7 @@ class GoogleAuthService {
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            
+
             return {
                 success: false,
                 error: errorMessage,

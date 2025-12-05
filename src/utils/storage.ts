@@ -11,7 +11,7 @@ export const storage = {
       console.error(`Error saving ${key}:`, error);
       throw error;
     }
-  },
+  },  
 
   // Get data
   async getItem<T>(key: string): Promise<T | null> {

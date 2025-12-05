@@ -236,8 +236,10 @@ app.get('/decks', authenticateToken, async (req, res) => {
 });
 
 // Get deck by ID
-app.get('/decks/:deckId', async (req, res) => {
+app.get('/decks/:deckId', authenticateToken, async (req, res) => {
     const { deckId } = req.params;
+    const userId = req.user.id;
+
     try {
         const result = await pool.query(`
             SELECT d.*, u.username as owner_name,
@@ -245,7 +247,8 @@ app.get('/decks/:deckId', async (req, res) => {
             FROM decks d
             LEFT JOIN users u ON d.owner_id = u.id
             WHERE d.id = $1
-        `, [deckId]);
+            AND (d.is_public = true OR d.owner_id = $2)
+        `, [deckId, userId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Deck not found' });
@@ -337,7 +340,7 @@ app.delete('/decks/:deckId', authenticateToken, async (req, res) => {
 // ==================== FLASHCARD APIs ====================
 
 // Get flashcards by deck ID
-app.get('/flashcards/:deckId', async (req, res) => {
+app.get('/flashcards/:deckId', authenticateToken, async (req, res) => {
     const { deckId } = req.params;
     try {
         const result = await pool.query(
@@ -446,7 +449,7 @@ app.delete('/flashcards/:flashcardId', authenticateToken, async (req, res) => {
 // ==================== USER APIs ====================
 
 // Get all users (for testing)
-app.get('/users', async (req, res) => {
+app.get('/users', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query('SELECT id, username, email, avatar_url FROM users');
         res.json(result.rows);
@@ -457,7 +460,7 @@ app.get('/users', async (req, res) => {
 });
 
 // Get user by ID
-app.get('/users/:userId', async (req, res) => {
+app.get('/users/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     try {
         const result = await pool.query(
@@ -670,8 +673,8 @@ app.post('/sessions', authenticateToken, async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`\n🚀 Backend running on port ${PORT}`);
-    console.log(`📡 API endpoints:`);
+    console.log(`\n Backend running on port ${PORT}`);
+    console.log(`API endpoints:`);
     console.log(`\n  Auth:`);
     console.log(`   POST http://localhost:${PORT}/api/auth/register`);
     console.log(`   POST http://localhost:${PORT}/api/auth/login`);

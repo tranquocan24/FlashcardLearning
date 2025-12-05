@@ -13,7 +13,7 @@ export interface LoginResponse {
     email: string;
     avatar_url?: string;
   };
-  token?: string; // For future JWT implementation
+  token?: string;
 }
 
 export interface RegisterRequest {

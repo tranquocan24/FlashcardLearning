@@ -58,33 +58,33 @@ export default function LoginScreen({ navigation }: any) {
     try {
       const result = await GoogleAuthService.signIn();
 
-      console.log('Google Sign-In result:', JSON.stringify(result, null, 2));
+      console.log("Google Sign-In result:", JSON.stringify(result, null, 2));
 
       if (result.success && result.data) {
-        console.log('Google data structure:', JSON.stringify(result, null, 2));
+        console.log("Google data structure:", JSON.stringify(result, null, 2));
 
-        // Google Sign-In returns: {type: 'success', data: {user: {...}, idToken: ...}}
-        const googleData = result.data.data || result.data;
-        const userData = googleData.user;
+        // result.data is User type: {user: {id, email, name, photo, ...}, idToken, scopes, serverAuthCode}
+        const googleUser = result.data as any;
 
-        if (!userData) {
+        if (!googleUser.user) {
           Alert.alert("Error", "No user data received from Google");
-          console.error('Full result:', result);
+          console.error("Full result:", result);
           return;
         }
 
+        const userData = googleUser.user;
         const googleId = userData.id;
         const email = userData.email;
-        const name = userData.name || userData.givenName || 'User';
+        const name = userData.name || userData.givenName || "User";
         const photo = userData.photo;
 
         if (!googleId || !email) {
           Alert.alert("Error", "Missing required user information from Google");
-          console.error('Missing data:', { googleId, email });
+          console.error("Missing data:", { googleId, email });
           return;
         }
 
-        console.log('Calling backend with:', { googleId, email, name, photo });
+        console.log("Calling backend with:", { googleId, email, name, photo });
 
         // Call backend API to create/login user with Google
         const response = await authAPI.googleLogin({
@@ -96,11 +96,19 @@ export default function LoginScreen({ navigation }: any) {
 
         if (response.success && response.user && response.token) {
           // Save user data and token
-          await storage.setUser(response.user);
           await storage.setToken(response.token);
 
+          // Create full User object with timestamps
+          const fullUser = {
+            ...response.user,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          await storage.setUser(fullUser);
+
           // Update AuthContext user state to trigger navigation
-          updateUser(response.user);
+          updateUser(fullUser);
 
           Alert.alert(
             "Welcome!",
@@ -108,10 +116,13 @@ export default function LoginScreen({ navigation }: any) {
           );
         }
       } else {
-        Alert.alert("Sign-In Failed", result.error || "Failed to sign in with Google");
+        Alert.alert(
+          "Sign-In Failed",
+          result.error || "Failed to sign in with Google"
+        );
       }
     } catch (error: any) {
-      console.error('Google Sign-In Error:', error);
+      console.error("Google Sign-In Error:", error);
       Alert.alert("Error", error.message || "An error occurred during sign-in");
     } finally {
       setIsGoogleLoading(false);
@@ -186,7 +197,9 @@ export default function LoginScreen({ navigation }: any) {
           </TouchableOpacity>
 
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Don't have an account? </Text>
+            <Text style={styles.registerText}>
+              Don&apos;t have an account?{" "}
+            </Text>
             <Button
               title="Register"
               onPress={() => navigation.navigate("Register")}
