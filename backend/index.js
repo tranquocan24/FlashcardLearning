@@ -236,7 +236,7 @@ app.get('/decks', authenticateToken, async (req, res) => {
 });
 
 // Get deck by ID
-app.get('/decks/:deckId', async (req, res) => {
+app.get('/decks/:deckId', authenticateToken, async (req, res) => {
     const { deckId } = req.params;
     const userId = req.user.id;
 
@@ -340,7 +340,7 @@ app.delete('/decks/:deckId', authenticateToken, async (req, res) => {
 // ==================== FLASHCARD APIs ====================
 
 // Get flashcards by deck ID
-app.get('/flashcards/:deckId', async (req, res) => {
+app.get('/flashcards/:deckId', authenticateToken, async (req, res) => {
     const { deckId } = req.params;
     try {
         const result = await pool.query(
@@ -449,7 +449,7 @@ app.delete('/flashcards/:flashcardId', authenticateToken, async (req, res) => {
 // ==================== USER APIs ====================
 
 // Get all users (for testing)
-app.get('/users', async (req, res) => {
+app.get('/users', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query('SELECT id, username, email, avatar_url FROM users');
         res.json(result.rows);
@@ -460,7 +460,7 @@ app.get('/users', async (req, res) => {
 });
 
 // Get user by ID
-app.get('/users/:userId', async (req, res) => {
+app.get('/users/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     try {
         const result = await pool.query(
