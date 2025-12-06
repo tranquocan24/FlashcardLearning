@@ -15,6 +15,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ColorTheme } from '../../../constants/theme';
 import { flashcardsAPI } from '../../api/flashcards';
 import { useTheme } from '../../context/ThemeContext';
@@ -97,7 +98,7 @@ export default function AddFlashcardScreen() {
         return null;
     };
 
-    const playPronunciation = async () => {
+    const handlePlayPronunciation = async () => {
         if (!word.trim()) {
             Alert.alert('No Word', 'Please enter a word first');
             return;
@@ -254,142 +255,152 @@ export default function AddFlashcardScreen() {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
-                {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={handleCancel}
-                        disabled={isLoading}
-                    >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>New Flashcard</Text>
-                    <View style={styles.placeholder} />
-                </View>
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={handleCancel}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>New Flashcard</Text>
+                        <View style={styles.placeholder} />
+                    </View>
 
-                {/* Form */}
-                <View style={styles.form}>
-                    <View style={styles.field}>
-                        <View style={styles.labelRow}>
-                            <Text style={styles.label}>
-                                Word / Term <Text style={styles.required}>*</Text>
-                            </Text>
-                            <TouchableOpacity
-                                style={styles.iconButton}
-                                onPress={handlePlayPronunciation}
-                                disabled={!word.trim() || isPlayingAudio}
-                            >
-                                {isPlayingAudio ? (
-                                    <ActivityIndicator size="small" color={colors.primary} />
-                                ) : (
-                                    <Ionicons
-                                        name="volume-high"
-                                        size={20}
-                                        color={word.trim() ? colors.primary : colors.border}
-                                    />
+                    {/* Form */}
+                    <View style={styles.form}>
+                        <View style={styles.field}>
+                            <View style={styles.labelRow}>
+                                <Text style={styles.label}>
+                                    Word / Term <Text style={styles.required}>*</Text>
+                                </Text>
+                                <TouchableOpacity
+                                    style={styles.iconButton}
+                                    onPress={handlePlayPronunciation}
+                                    disabled={!word.trim() || isPlayingAudio}
+                                >
+                                    {isPlayingAudio ? (
+                                        <ActivityIndicator size="small" color={colors.primary} />
+                                    ) : (
+                                        <Ionicons
+                                            name="volume-high"
+                                            size={20}
+                                            color={word.trim() ? colors.primary : colors.border}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g., Serendipity"
+                                placeholderTextColor={colors.tertiaryText}
+                                value={word}
+                                onChangeText={setWord}
+                                maxLength={100}
+                                editable={!isLoading}
+                                autoFocus
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                keyboardType="default"
+                            />
+                            <Text style={styles.hint}>{word.length}/100</Text>
+                        </View>
+
+                        <View style={styles.field}>
+                            <View style={styles.labelRow}>
+                                <Text style={styles.label}>
+                                    Meaning / Definition <Text style={styles.required}>*</Text>
+                                </Text>
+                                {isTranslating && (
+                                    <View style={styles.translatingIndicator}>
+                                        <ActivityIndicator size="small" color={colors.primary} />
+                                        <Text style={styles.translatingText}>Translating...</Text>
+                                    </View>
                                 )}
-                            </TouchableOpacity>
+                            </View>
+                            <TextInput
+                                style={[styles.input, styles.textArea]}
+                                placeholder="What does it mean?"
+                                placeholderTextColor={colors.tertiaryText}
+                                value={meaning}
+                                onChangeText={setMeaning}
+                                maxLength={300}
+                                multiline
+                                numberOfLines={3}
+                                textAlignVertical="top"
+                                editable={!isLoading}
+                                autoCapitalize="sentences"
+                                autoCorrect={false}
+                                keyboardType="default"
+                            />
+                            <Text style={styles.hint}>{meaning.length}/300</Text>
                         </View>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g., Serendipity"
-                            placeholderTextColor={colors.tertiaryText}
-                            value={word}
-                            onChangeText={setWord}
-                            maxLength={100}
-                            editable={!isLoading}
-                            autoFocus
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            keyboardType="default"
-                        />
-                        <Text style={styles.hint}>{word.length}/100</Text>
-                    </View>
 
-                    <View style={styles.field}>
-                        <View style={styles.labelRow}>
-                            <Text style={styles.label}>
-                                Meaning / Definition <Text style={styles.required}>*</Text>
+                        <View style={styles.field}>
+                            <Text style={styles.label}>Example (Optional)</Text>
+                            <TextInput
+                                style={[styles.input, styles.textArea]}
+                                placeholder="A sentence using this word..."
+                                placeholderTextColor={colors.tertiaryText}
+                                value={example}
+                                onChangeText={setExample}
+                                maxLength={300}
+                                multiline
+                                numberOfLines={3}
+                                textAlignVertical="top"
+                                editable={!isLoading}
+                                autoCapitalize="sentences"
+                                autoCorrect={false}
+                                keyboardType="default"
+                            />
+                            <Text style={styles.hint}>{example.length}/300</Text>
+                        </View>
+
+                        <View style={styles.tipBox}>
+                            <Text style={styles.tipTitle}>💡 Tip</Text>
+                            <Text style={styles.tipText}>
+                                Add an example sentence to help you remember the word in context
                             </Text>
-                            {isTranslating && (
-                                <View style={styles.translatingIndicator}>
-                                    <ActivityIndicator size="small" color={colors.primary} />
-                                    <Text style={styles.translatingText}>Translating...</Text>
-                                </View>
-                            )}
                         </View>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="What does it mean?"
-                            placeholderTextColor={colors.tertiaryText}
-                            value={meaning}
-                            onChangeText={setMeaning}
-                            maxLength={300}
-                            multiline
-                            numberOfLines={3}
-                            textAlignVertical="top"
-                            editable={!isLoading}
-                            autoCapitalize="sentences"
-                            autoCorrect={false}
-                            keyboardType="default"
-                        />
-                        <Text style={styles.hint}>{meaning.length}/300</Text>
                     </View>
+                </ScrollView>
 
-                    <View style={styles.field}>
-                        <Text style={styles.label}>Example (Optional)</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="A sentence using this word..."
-                            placeholderTextColor={colors.tertiaryText}
-                            value={example}
-                            onChangeText={setExample}
-                            maxLength={300}
-                            multiline
-                            numberOfLines={3}
-                            textAlignVertical="top"
-                            editable={!isLoading}
-                            autoCapitalize="sentences"
-                            autoCorrect={false}
-                            keyboardType="default"
-                        />
-                        <Text style={styles.hint}>{example.length}/300</Text>
-                    </View>
-
-                    <View style={styles.tipBox}>
-                        <Text style={styles.tipTitle}>💡 Tip</Text>
-                        <Text style={styles.tipText}>
-                            Add an example sentence to help you remember the word in context
+                {/* Save Button */}
+                <View style={styles.footer}>
+                    <TouchableOpacity
+                        style={[
+                            styles.saveButton,
+                            (!word.trim() || !meaning.trim() || isLoading) && styles.saveButtonDisabled,
+                        ]}
+                        onPress={handleSave}
+                        disabled={!word.trim() || !meaning.trim() || isLoading}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[
+                            styles.saveButtonText,
+                            (!word.trim() || !meaning.trim() || isLoading) && styles.saveButtonTextDisabled
+                        ]}>
+                            {isLoading ? 'Saving...' : 'Save Flashcard'}
                         </Text>
-                    </View>
+                    </TouchableOpacity>
                 </View>
-            </ScrollView>
-
-            {/* Save Button */}
-            <View style={styles.footer}>
-                <TouchableOpacity
-                    style={[
-                        styles.saveButton,
-                        (!word.trim() || !meaning.trim() || isLoading) && styles.saveButtonDisabled,
-                    ]}
-                    onPress={handleSave}
-                    disabled={!word.trim() || !meaning.trim() || isLoading}
-                >
-                    <Text style={styles.saveButtonText}>
-                        {isLoading ? 'Saving...' : 'Save Flashcard'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
 const createStyles = (colors: ColorTheme) => StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: colors.card,
+    },
     container: {
         flex: 1,
         backgroundColor: colors.background,
@@ -401,7 +412,7 @@ const createStyles = (colors: ColorTheme) => StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 60,
+        paddingTop: 20,
         paddingBottom: 20,
         paddingHorizontal: 20,
         backgroundColor: colors.card,
@@ -495,7 +506,7 @@ const createStyles = (colors: ColorTheme) => StyleSheet.create({
     },
     footer: {
         padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+        paddingBottom: 20,
         backgroundColor: colors.card,
         borderTopWidth: 1,
         borderTopColor: colors.border,
@@ -513,5 +524,8 @@ const createStyles = (colors: ColorTheme) => StyleSheet.create({
         fontSize: 17,
         fontWeight: '600',
         color: '#FFF',
+    },
+    saveButtonTextDisabled: {
+        color: colors.tertiaryText,
     },
 });

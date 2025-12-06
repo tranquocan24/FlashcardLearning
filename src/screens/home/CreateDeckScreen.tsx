@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
 import { useTheme } from '../../context/ThemeContext';
@@ -134,103 +135,113 @@ export default function CreateDeckScreen() {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
-                {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={handleCancel}
-                        disabled={isLoading}
-                    >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>New Deck</Text>
-                    <View style={styles.placeholder} />
-                </View>
-
-                {/* Form */}
-                <View style={styles.form}>
-                    <View style={styles.field}>
-                        <Text style={styles.label}>
-                            Title <Text style={styles.required}>*</Text>
-                        </Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g., IELTS Vocabulary"
-                            placeholderTextColor="#999"
-                            value={title}
-                            onChangeText={setTitle}
-                            maxLength={100}
-                            editable={!isLoading}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            keyboardType="default"
-                        />
-                        <Text style={styles.hint}>{title.length}/100</Text>
-                    </View>
-
-                    <View style={styles.field}>
-                        <Text style={styles.label}>Description</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="What is this deck about?"
-                            placeholderTextColor="#999"
-                            value={description}
-                            onChangeText={setDescription}
-                            maxLength={300}
-                            multiline
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            editable={!isLoading}
-                            autoCapitalize="sentences"
-                            autoCorrect={false}
-                            keyboardType="default"
-                        />
-                        <Text style={styles.hint}>{description.length}/300</Text>
-                    </View>
-
-                    <View style={styles.switchField}>
-                        <View style={styles.switchInfo}>
-                            <Text style={styles.switchLabel}>Make this deck public</Text>
-                            <Text style={styles.switchDescription}>
-                                Other users can view and study this deck
-                            </Text>
-                        </View>
-                        <Switch
-                            value={isPublic}
-                            onValueChange={setIsPublic}
-                            trackColor={{ false: colors.border, true: colors.primary }}
-                            thumbColor="#FFF"
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={handleCancel}
                             disabled={isLoading}
-                        />
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>New Deck</Text>
+                        <View style={styles.placeholder} />
                     </View>
-                </View>
-            </ScrollView>
 
-            {/* Create Button */}
-            <View style={styles.footer}>
-                <TouchableOpacity
-                    style={[
-                        styles.createButton,
-                        (!title.trim() || isLoading) && styles.createButtonDisabled,
-                    ]}
-                    onPress={handleCreate}
-                    disabled={!title.trim() || isLoading}
-                >
-                    <Text style={styles.createButtonText}>
-                        {isLoading ? 'Creating...' : 'Create Deck'}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
+                    {/* Form */}
+                    <View style={styles.form}>
+                        <View style={styles.field}>
+                            <Text style={styles.label}>
+                                Title <Text style={styles.required}>*</Text>
+                            </Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g., IELTS Vocabulary"
+                                placeholderTextColor={colors.tertiaryText}
+                                value={title}
+                                onChangeText={setTitle}
+                                maxLength={100}
+                                editable={!isLoading}
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                keyboardType="default"
+                            />
+                            <Text style={styles.hint}>{title.length}/100</Text>
+                        </View>
+
+                        <View style={styles.field}>
+                            <Text style={styles.label}>Description</Text>
+                            <TextInput
+                                style={[styles.input, styles.textArea]}
+                                placeholder="What is this deck about?"
+                                placeholderTextColor={colors.tertiaryText}
+                                value={description}
+                                onChangeText={setDescription}
+                                maxLength={300}
+                                multiline
+                                numberOfLines={4}
+                                textAlignVertical="top"
+                                editable={!isLoading}
+                                autoCapitalize="sentences"
+                                autoCorrect={false}
+                                keyboardType="default"
+                            />
+                            <Text style={styles.hint}>{description.length}/300</Text>
+                        </View>
+
+                        <View style={styles.switchField}>
+                            <View style={styles.switchInfo}>
+                                <Text style={styles.switchLabel}>Make this deck public</Text>
+                                <Text style={styles.switchDescription}>
+                                    Other users can view and study this deck
+                                </Text>
+                            </View>
+                            <Switch
+                                value={isPublic}
+                                onValueChange={setIsPublic}
+                                trackColor={{ false: colors.border, true: colors.primary }}
+                                thumbColor="#FFF"
+                                disabled={isLoading}
+                            />
+                        </View>
+                    </View>
+                </ScrollView>
+
+                {/* Create Button */}
+                <View style={styles.footer}>
+                    <TouchableOpacity
+                        style={[
+                            styles.createButton,
+                            (!title.trim() || isLoading) && styles.createButtonDisabled,
+                        ]}
+                        onPress={handleCreate}
+                        disabled={!title.trim() || isLoading}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[
+                            styles.createButtonText,
+                            (!title.trim() || isLoading) && styles.createButtonTextDisabled
+                        ]}>
+                            {isLoading ? 'Creating...' : 'Create Deck'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
 const createStyles = (colors: ColorTheme) => StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: colors.card,
+    },
     container: {
         flex: 1,
         backgroundColor: colors.background,
@@ -242,7 +253,7 @@ const createStyles = (colors: ColorTheme) => StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 60,
+        paddingTop: 20,
         paddingBottom: 20,
         paddingHorizontal: 20,
         backgroundColor: colors.card,
@@ -323,7 +334,7 @@ const createStyles = (colors: ColorTheme) => StyleSheet.create({
     },
     footer: {
         padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+        paddingBottom: 20,
         backgroundColor: colors.card,
         borderTopWidth: 1,
         borderTopColor: colors.border,
@@ -341,5 +352,8 @@ const createStyles = (colors: ColorTheme) => StyleSheet.create({
         fontSize: 17,
         fontWeight: '600',
         color: '#FFF',
+    },
+    createButtonTextDisabled: {
+        color: colors.tertiaryText,
     },
 });
