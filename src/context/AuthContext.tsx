@@ -144,11 +144,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.log("Google auth response:", JSON.stringify(response, null, 2));
 
       if (response.success && response.user) {
-        setUser(response.user);
-        await storage.setItem(STORAGE_KEYS.USER, response.user);
+        // IMPORTANT: Save token FIRST before setting user
         if (response.token) {
+          console.log('Saving Google token to storage...');
           await storage.setItem(STORAGE_KEYS.TOKEN, response.token);
+          console.log('Token saved successfully');
+        } else {
+          console.warn('No token in Google response!');
         }
+
+        // Then save user data
+        await storage.setItem(STORAGE_KEYS.USER, response.user);
+
+        // Set user LAST - this triggers navigation
+        setUser(response.user);
         console.log("Google login successful, user saved");
       } else {
         console.error("Google login failed:", response.message || "Unknown error");

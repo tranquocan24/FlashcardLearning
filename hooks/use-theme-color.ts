@@ -3,14 +3,15 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, ColorTheme } from '@/constants/theme';
+import { useTheme } from '@/src/context/ThemeContext';
 
+// Legacy support for old color props pattern
 export function useThemeColor(
   props: { light?: string; dark?: string },
   colorName: keyof typeof Colors.light & keyof typeof Colors.dark
 ) {
-  const theme = useColorScheme() ?? 'light';
+  const { theme } = useTheme();
   const colorFromProps = props[theme];
 
   if (colorFromProps) {
@@ -18,4 +19,10 @@ export function useThemeColor(
   } else {
     return Colors[theme][colorName];
   }
+}
+
+// New hook for semantic color names from comprehensive palette
+export function useThemedColor(colorName: keyof ColorTheme): string {
+  const { colors } = useTheme();
+  return colors[colorName];
 }

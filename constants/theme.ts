@@ -5,6 +5,50 @@
 
 import { Platform } from 'react-native';
 
+export const lightColors = {
+  background: '#FFFFFF',
+  secondaryBackground: '#F8F9FA',
+  cardBackground: '#FFFFFF',
+  text: '#000000',
+  secondaryText: '#666666',
+  tertiaryText: '#999999',
+  primary: '#007AFF',
+  primaryDark: '#0051D5',
+  secondary: '#E5E5EA',
+  border: '#E0E0E0',
+  borderLight: '#F0F0F0',
+  card: '#F0F0F0',
+  tabIconDefault: '#8E8E93',
+  tabIconSelected: '#007AFF',
+  success: '#34C759',
+  error: '#FF3B30',
+  warning: '#FF9500',
+  shadow: '#000000',
+};
+
+export const darkColors = {
+  background: '#000000',
+  secondaryBackground: '#1C1C1E',
+  cardBackground: '#1C1C1E',
+  text: '#FFFFFF',
+  secondaryText: '#ABABAB',
+  tertiaryText: '#8E8E93',
+  primary: '#0A84FF',
+  primaryDark: '#0066CC',
+  secondary: '#2C2C2E',
+  border: '#38383A',
+  borderLight: '#2C2C2E',
+  card: '#2C2C2E',
+  tabIconDefault: '#7D7D80',
+  tabIconSelected: '#0A84FF',
+  success: '#30D158',
+  error: '#FF453A',
+  warning: '#FF9F0A',
+  shadow: '#000000',
+};
+
+export type ColorTheme = typeof lightColors;
+
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
