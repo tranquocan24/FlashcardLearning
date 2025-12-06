@@ -5,11 +5,14 @@ import {
     Image,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../context/ThemeContext';
+import { ColorTheme } from '../../../constants/theme';
 import { SettingsStackParamList } from '../../navigation/types';
 
 // Avatar images mapping
@@ -33,6 +36,9 @@ type SettingsScreenNavigationProp = NativeStackNavigationProp<
 export default function SettingsScreen() {
     const navigation = useNavigation<SettingsScreenNavigationProp>();
     const { user, logout } = useAuth();
+    const { theme, toggleTheme, isDark, colors } = useTheme();
+
+    const styles = createStyles(colors);
 
     const handleEditProfile = () => {
         navigation.navigate('EditProfile');
@@ -127,6 +133,26 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Appearance Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Appearance</Text>
+                    <View style={styles.menuGroup}>
+                        <View style={styles.menuItem}>
+                            <View style={styles.menuLeft}>
+                                <Text style={styles.menuIcon}>🌙</Text>
+                                <Text style={styles.menuTitle}>Dark Mode</Text>
+                            </View>
+                            <Switch
+                                value={isDark}
+                                onValueChange={toggleTheme}
+                                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                                thumbColor="#FFF"
+                                ios_backgroundColor="#D1D1D6"
+                            />
+                        </View>
+                    </View>
+                </View>
+
                 {/* About Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>About</Text>
@@ -156,10 +182,10 @@ export default function SettingsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
@@ -168,14 +194,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 60,
         paddingBottom: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
+        borderBottomColor: colors.border,
     },
     title: {
         fontSize: 32,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
     },
     section: {
         marginTop: 24,
@@ -184,7 +210,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#8E8E93',
+        color: colors.tertiaryText,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: 12,
@@ -192,10 +218,10 @@ const styles = StyleSheet.create({
     userCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 16,
         padding: 20,
-        shadowColor: '#000',
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
@@ -205,7 +231,7 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
@@ -226,18 +252,18 @@ const styles = StyleSheet.create({
     username: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         marginBottom: 4,
     },
     email: {
         fontSize: 15,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
     menuGroup: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         overflow: 'hidden',
-        shadowColor: '#000',
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
@@ -249,7 +275,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 16,
         paddingHorizontal: 16,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
     },
     menuLeft: {
         flexDirection: 'row',
@@ -261,31 +287,31 @@ const styles = StyleSheet.create({
     },
     menuTitle: {
         fontSize: 16,
-        color: '#000',
+        color: colors.text,
         fontWeight: '500',
     },
     menuArrow: {
         fontSize: 24,
-        color: '#C7C7CC',
+        color: colors.secondaryText,
         fontWeight: '300',
     },
     separator: {
         height: 1,
-        backgroundColor: '#F0F0F0',
+        backgroundColor: colors.borderLight,
         marginLeft: 48,
     },
     versionText: {
         fontSize: 15,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
     logoutButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#FF3B30',
-        shadowColor: '#000',
+        borderColor: colors.error,
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
@@ -294,6 +320,6 @@ const styles = StyleSheet.create({
     logoutText: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#FF3B30',
+        color: colors.error,
     },
 });
