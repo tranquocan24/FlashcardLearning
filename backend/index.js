@@ -263,13 +263,13 @@ app.get('/decks/:deckId', authenticateToken, async (req, res) => {
 
 // Create new deck
 app.post('/decks', authenticateToken, async (req, res) => {
-    const { id, title, description, is_public } = req.body;
+    const { id, title, description, is_public, folder_id } = req.body;
 
     try {
         // Use authenticated user's ID as owner
         const result = await pool.query(
-            'INSERT INTO decks (id, title, description, owner_id, is_public, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *',
-            [id, title, description, req.user.id, is_public || false]
+            'INSERT INTO decks (id, title, description, owner_id, is_public, folder_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *',
+            [id, title, description, req.user.id, is_public || false, folder_id || null]
         );
 
         res.status(201).json(result.rows[0]);
@@ -334,6 +334,65 @@ app.delete('/decks/:deckId', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('Error deleting deck:', err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// Move deck to folder or out of folder
+app.put('/decks/:deckId/move', authenticateToken, async (req, res) => {
+    const { deckId } = req.params;
+    const { folderId } = req.body;
+    const userId = req.user.id;
+
+    try {
+        // Verify deck ownership
+        const ownerCheck = await pool.query(
+            'SELECT owner_id FROM decks WHERE id = $1',
+            [deckId]
+        );
+
+        if (ownerCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Deck not found'
+            });
+        }
+
+        if (ownerCheck.rows[0].owner_id !== userId) {
+            return res.status(403).json({
+                success: false,
+                error: 'You do not have permission to move this deck'
+            });
+        }
+
+        // If folderId is provided, verify folder ownership
+        if (folderId) {
+            const folderCheck = await pool.query(
+                'SELECT id FROM folders WHERE id = $1 AND user_id = $2',
+                [folderId, userId]
+            );
+
+            if (folderCheck.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Folder not found or access denied'
+                });
+            }
+        }
+
+        // Update deck's folder_id
+        const result = await pool.query(
+            'UPDATE decks SET folder_id = $1, updated_at = NOW() WHERE id = $2 AND owner_id = $3 RETURNING *',
+            [folderId || null, deckId, userId]
+        );
+
+        res.json({
+            success: true,
+            deck: result.rows[0],
+            message: folderId ? 'Deck moved to folder successfully' : 'Deck moved out of folder successfully'
+        });
+    } catch (err) {
+        console.error('Error moving deck:', err);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
@@ -699,8 +758,161 @@ app.listen(PORT, () => {
     console.log(`   GET  http://localhost:${PORT}/progress/:userId/:deckId`);
     console.log(`   POST http://localhost:${PORT}/progress`);
     console.log(`   GET  http://localhost:${PORT}/sessions/:userId`);
-    console.log(`   POST http://localhost:${PORT}/sessions\n`);
+    console.log(`   POST http://localhost:${PORT}/sessions`);
+    console.log(`\n  Folders:`);
+    console.log(`   GET  http://localhost:${PORT}/api/folders`);
+    console.log(`   POST http://localhost:${PORT}/api/folders`);
+    console.log(`   PUT  http://localhost:${PORT}/api/folders/:folderId`);
+    console.log(`   DEL  http://localhost:${PORT}/api/folders/:folderId`);
+    console.log(`   PUT  http://localhost:${PORT}/decks/:deckId/move\n`);
 });
+
+// ==================== FOLDER APIs ====================
+
+// Get all folders for user
+app.get('/api/folders', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const result = await pool.query(
+            `SELECT f.*, 
+                    COUNT(d.id) as deck_count
+             FROM folders f
+             LEFT JOIN decks d ON d.folder_id = f.id
+             WHERE f.user_id = $1
+             GROUP BY f.id
+             ORDER BY f.created_at DESC`,
+            [userId]
+        );
+
+        res.json({
+            success: true,
+            folders: result.rows
+        });
+    } catch (err) {
+        console.error('Error fetching folders:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Create new folder
+app.post('/api/folders', authenticateToken, async (req, res) => {
+    const { id, name } = req.body;
+    const userId = req.user.id;
+
+    try {
+        if (!id || !name) {
+            return res.status(400).json({
+                success: false,
+                error: 'Folder ID and name are required'
+            });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO folders (id, name, user_id, created_at, updated_at) 
+             VALUES ($1, $2, $3, NOW(), NOW()) 
+             RETURNING *`,
+            [id, name, userId]
+        );
+
+        res.status(201).json({
+            success: true,
+            folder: result.rows[0],
+            message: 'Folder created successfully'
+        });
+    } catch (err) {
+        console.error('Error creating folder:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Update folder
+app.put('/api/folders/:folderId', authenticateToken, async (req, res) => {
+    const { folderId } = req.params;
+    const { name } = req.body;
+    const userId = req.user.id;
+
+    try {
+        if (!name) {
+            return res.status(400).json({
+                success: false,
+                error: 'Folder name is required'
+            });
+        }
+
+        // Check if folder belongs to user
+        const checkFolder = await pool.query(
+            'SELECT id FROM folders WHERE id = $1 AND user_id = $2',
+            [folderId, userId]
+        );
+
+        if (checkFolder.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Folder not found or access denied'
+            });
+        }
+
+        const result = await pool.query(
+            `UPDATE folders 
+             SET name = $1, updated_at = NOW() 
+             WHERE id = $2 AND user_id = $3 
+             RETURNING *`,
+            [name, folderId, userId]
+        );
+
+        res.json({
+            success: true,
+            folder: result.rows[0],
+            message: 'Folder updated successfully'
+        });
+    } catch (err) {
+        console.error('Error updating folder:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Delete folder (sets folder_id to null for all decks in folder)
+app.delete('/api/folders/:folderId', authenticateToken, async (req, res) => {
+    const { folderId } = req.params;
+    const userId = req.user.id;
+
+    try {
+        // Check if folder belongs to user
+        const checkFolder = await pool.query(
+            'SELECT id FROM folders WHERE id = $1 AND user_id = $2',
+            [folderId, userId]
+        );
+
+        if (checkFolder.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Folder not found or access denied'
+            });
+        }
+
+        // Update all decks in this folder to have null folder_id
+        await pool.query(
+            'UPDATE decks SET folder_id = NULL WHERE folder_id = $1',
+            [folderId]
+        );
+
+        // Delete the folder
+        await pool.query(
+            'DELETE FROM folders WHERE id = $1 AND user_id = $2',
+            [folderId, userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Folder deleted successfully'
+        });
+    } catch (err) {
+        console.error('Error deleting folder:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 
 
 

@@ -1,6 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+import { Audio } from 'expo-av';
+import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -32,9 +34,18 @@ export default function EditFlashcardScreen() {
     const [example, setExample] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+    const sound = useRef<Audio.Sound | null>(null);
 
     useEffect(() => {
         loadFlashcard();
+
+        return () => {
+            if (sound.current) {
+                sound.current.unloadAsync();
+            }
+        };
     }, [flashcardId]);
 
     const loadFlashcard = async () => {
@@ -56,6 +67,84 @@ export default function EditFlashcardScreen() {
             navigation.goBack();
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const findAudioUrl = (data: any[]): string | null => {
+        // First pass: look for US pronunciation
+        for (const entry of data) {
+            if (!entry.phonetics) continue;
+
+            const usAudio = entry.phonetics.find((p: any) =>
+                p.audio && (p.audio.includes('-us.mp3') || p.audio.includes('-US.mp3'))
+            );
+            if (usAudio) return usAudio.audio;
+        }
+
+        // Second pass: accept any audio
+        for (const entry of data) {
+            if (!entry.phonetics) continue;
+
+            const anyAudio = entry.phonetics.find((p: any) => p.audio);
+            if (anyAudio) return anyAudio.audio;
+        }
+
+        return null;
+    };
+
+    const playPronunciation = async (wordText: string) => {
+        if (!wordText.trim()) {
+            Alert.alert('No Word', 'Please enter a word first');
+            return;
+        }
+
+        setIsPlayingAudio(true);
+        try {
+            // Unload previous sound if exists
+            if (sound.current) {
+                await sound.current.unloadAsync();
+                sound.current = null;
+            }
+
+            // Fetch audio from Free Dictionary API
+            const response = await fetch(
+                `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(wordText.trim())}`
+            );
+
+            if (!response.ok) {
+                throw new Error('Word not found or no pronunciation available');
+            }
+
+            const data = await response.json();
+            const audioUrl = findAudioUrl(data);
+
+            if (!audioUrl) {
+                throw new Error('No pronunciation audio available for this word');
+            }
+
+            // Play audio
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                { uri: audioUrl },
+                { shouldPlay: true }
+            );
+
+            sound.current = newSound;
+
+            // Auto cleanup when finished
+            newSound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setIsPlayingAudio(false);
+                }
+            });
+
+        } catch (error: any) {
+            console.error('Audio error:', error);
+            Alert.alert(
+                'Pronunciation Error',
+                error.message || 'Could not play pronunciation. Please try again.'
+            );
+        } finally {
+            setIsPlayingAudio(false);
         }
     };
 
@@ -126,9 +215,26 @@ export default function EditFlashcardScreen() {
                 {/* Form */}
                 <View style={styles.form}>
                     <View style={styles.field}>
-                        <Text style={styles.label}>
-                            Word / Term <Text style={styles.required}>*</Text>
-                        </Text>
+                        <View style={styles.labelRow}>
+                            <Text style={styles.label}>
+                                Word / Term <Text style={styles.required}>*</Text>
+                            </Text>
+                            <TouchableOpacity
+                                style={styles.audioButton}
+                                onPress={() => playPronunciation(word)}
+                                disabled={isPlayingAudio || !word.trim()}
+                            >
+                                {isPlayingAudio ? (
+                                    <ActivityIndicator size="small" color="#007AFF" />
+                                ) : (
+                                    <Ionicons
+                                        name="volume-high"
+                                        size={24}
+                                        color={word.trim() ? "#007AFF" : "#CCC"}
+                                    />
+                                )}
+                            </TouchableOpacity>
+                        </View>
                         <TextInput
                             style={styles.input}
                             placeholder="e.g., Serendipity"
@@ -254,10 +360,18 @@ const styles = StyleSheet.create({
     field: {
         gap: 8,
     },
+    labelRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     label: {
         fontSize: 15,
         fontWeight: '600',
         color: '#000',
+    },
+    audioButton: {
+        padding: 8,
     },
     required: {
         color: '#FF3B30',

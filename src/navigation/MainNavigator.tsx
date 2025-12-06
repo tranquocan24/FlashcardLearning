@@ -8,6 +8,7 @@ import AddFlashcardScreen from "../screens/flashcard/AddFlashcardScreen";
 import EditFlashcardScreen from "../screens/flashcard/EditFlashcardScreen";
 import CreateDeckScreen from "../screens/home/CreateDeckScreen";
 import DeckDetailScreen from "../screens/home/DeckDetailScreen";
+import FolderDetailScreen from "../screens/home/FolderDetailScreen";
 import HomeScreen from "../screens/home/HomeScreen";
 
 // Learning Screens (Phase 3)
@@ -28,6 +29,11 @@ function HomeStackNavigator() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
+      <HomeStack.Screen
+        name="FolderDetail"
+        component={FolderDetailScreen}
+        options={{ headerShown: true }}
+      />
       <HomeStack.Screen name="DeckDetail" component={DeckDetailScreen} />
       <HomeStack.Screen name="AddFlashcard" component={AddFlashcardScreen} />
       <HomeStack.Screen name="EditFlashcard" component={EditFlashcardScreen} />

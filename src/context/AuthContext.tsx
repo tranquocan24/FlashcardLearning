@@ -16,6 +16,12 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (googleUserData: {
+    id: string;
+    email: string;
+    name: string;
+    photo?: string;
+  }) => Promise<void>;
   register: (
     username: string,
     email: string,
@@ -113,6 +119,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const loginWithGoogle = async (googleUserData: {
+    id: string;
+    email: string;
+    name: string;
+    photo?: string;
+  }) => {
+    try {
+      console.log("Calling Google auth API...");
+      console.log("Request data:", {
+        googleId: googleUserData.id,
+        email: googleUserData.email,
+        name: googleUserData.name,
+        photo: googleUserData.photo,
+      });
+
+      const response = await authAPI.googleLogin({
+        googleId: googleUserData.id,
+        email: googleUserData.email,
+        name: googleUserData.name,
+        photo: googleUserData.photo,
+      });
+
+      console.log("Google auth response:", JSON.stringify(response, null, 2));
+
+      if (response.success && response.user) {
+        setUser(response.user);
+        await storage.setItem(STORAGE_KEYS.USER, response.user);
+        if (response.token) {
+          await storage.setItem(STORAGE_KEYS.TOKEN, response.token);
+        }
+        console.log("Google login successful, user saved");
+      } else {
+        console.error("Google login failed:", response.message || "Unknown error");
+        throw new Error(response.message || "Google login failed");
+      }
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  };
+
 
   const logout = async () => {
     try {
@@ -137,6 +189,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       isLoading,
       isAuthenticated: !!user,
       login,
+      loginWithGoogle,
       register,
       logout,
       updateUser,

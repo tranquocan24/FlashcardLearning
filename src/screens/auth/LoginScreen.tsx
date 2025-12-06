@@ -9,16 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { authAPI } from "../../api/auth";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleAuthService from "../../services/GoogleAuthService";
-import { storage } from "../../utils/storage";
 import { validateEmail, validatePassword } from "../../utils/validation";
 
 export default function LoginScreen({ navigation }: any) {
-  const { login, updateUser } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
@@ -63,67 +61,43 @@ export default function LoginScreen({ navigation }: any) {
       if (result.success && result.data) {
         console.log("Google data structure:", JSON.stringify(result, null, 2));
 
-        // result.data is User type: {user: {id, email, name, photo, ...}, idToken, scopes, serverAuthCode}
-        const googleUser = result.data as any;
+        // Extract user info from Google Sign-In result
+        // The structure is: result.data.data.user (nested data)
+        const googleData = result.data.data || result.data;
+        const googleUser = googleData.user;
 
-        if (!googleUser.user) {
-          Alert.alert("Error", "No user data received from Google");
+        if (!googleUser?.id || !googleUser?.email) {
+          Alert.alert("Error", "Incomplete user data from Google");
           console.error("Full result:", result);
           return;
         }
 
-        const userData = googleUser.user;
-        const googleId = userData.id;
-        const email = userData.email;
-        const name = userData.name || userData.givenName || "User";
-        const photo = userData.photo;
-
-        if (!googleId || !email) {
-          Alert.alert("Error", "Missing required user information from Google");
-          console.error("Missing data:", { googleId, email });
-          return;
-        }
-
-        console.log("Calling backend with:", { googleId, email, name, photo });
-
-        // Call backend API to create/login user with Google
-        const response = await authAPI.googleLogin({
-          googleId,
-          email,
-          name,
-          photo,
+        console.log("Calling loginWithGoogle with user data...");
+        console.log("User data:", {
+          id: googleUser.id,
+          email: googleUser.email,
+          name: googleUser.name,
+          photo: googleUser.photo,
         });
 
-        if (response.success && response.user && response.token) {
-          // Save user data and token
-          await storage.setToken(response.token);
+        // Use AuthContext's loginWithGoogle with user data
+        await loginWithGoogle({
+          id: googleUser.id,
+          email: googleUser.email,
+          name: googleUser.name || googleUser.givenName || googleUser.email.split('@')[0],
+          photo: googleUser.photo,
+        });
 
-          // Create full User object with timestamps
-          const fullUser = {
-            ...response.user,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          await storage.setUser(fullUser);
-
-          // Update AuthContext user state to trigger navigation
-          updateUser(fullUser);
-
-          Alert.alert(
-            "Welcome!",
-            `Signed in successfully as ${response.user.username}`
-          );
-        }
+        Alert.alert("Welcome!", "Signed in successfully with Google");
       } else {
-        Alert.alert(
-          "Sign-In Failed",
-          result.error || "Failed to sign in with Google"
-        );
+        Alert.alert("Sign-In Failed", result.error || "Could not sign in with Google");
       }
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
-      Alert.alert("Error", error.message || "An error occurred during sign-in");
+      Alert.alert(
+        "Sign-In Error",
+        error.message || "An error occurred during Google sign-in"
+      );
     } finally {
       setIsGoogleLoading(false);
     }

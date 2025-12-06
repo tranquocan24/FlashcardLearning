@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Audio } from 'expo-av';
 import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -26,15 +28,22 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
     const [isLoading, setIsLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
-    const [knownCards, setKnownCards] = useState<Set<string>>(new Set());
+    const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
     // Animation values
     const flipAnim = useRef(new Animated.Value(0)).current;
     const swipeAnim = useRef(new Animated.ValueXY()).current;
     const fadeAnim = useRef(new Animated.Value(1)).current;
+    const sound = useRef<Audio.Sound | null>(null);
 
     useEffect(() => {
         fetchFlashcards();
+
+        return () => {
+            if (sound.current) {
+                sound.current.unloadAsync();
+            }
+        };
     }, []);
 
     const fetchFlashcards = async () => {
@@ -72,26 +81,113 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
         setIsFlipped(!isFlipped);
     };
 
-    const handleKnown = () => {
-        const currentCard = flashcards[currentIndex];
-        const newKnownCards = new Set([...knownCards, currentCard.id]);
-        setKnownCards(newKnownCards);
-        goToNext(newKnownCards);
+    const findAudioUrl = (data: any[]): string | null => {
+        // First pass: look for US pronunciation
+        for (const entry of data) {
+            if (!entry.phonetics) continue;
+
+            const usAudio = entry.phonetics.find((p: any) =>
+                p.audio && (p.audio.includes('-us.mp3') || p.audio.includes('-US.mp3'))
+            );
+            if (usAudio) return usAudio.audio;
+        }
+
+        // Second pass: accept any audio
+        for (const entry of data) {
+            if (!entry.phonetics) continue;
+
+            const anyAudio = entry.phonetics.find((p: any) => p.audio);
+            if (anyAudio) return anyAudio.audio;
+        }
+
+        return null;
     };
 
-    const handleNotKnown = () => {
+    const playPronunciation = async (word: string) => {
+        if (!word.trim()) {
+            return;
+        }
+
+        setIsPlayingAudio(true);
+        try {
+            // Unload previous sound if exists
+            if (sound.current) {
+                await sound.current.unloadAsync();
+                sound.current = null;
+            }
+
+            // Fetch audio from Free Dictionary API
+            const response = await fetch(
+                `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.trim())}`
+            );
+
+            if (!response.ok) {
+                throw new Error('Word not found or no pronunciation available');
+            }
+
+            const data = await response.json();
+            const audioUrl = findAudioUrl(data);
+
+            if (!audioUrl) {
+                throw new Error('No pronunciation audio available for this word');
+            }
+
+            // Play audio
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                { uri: audioUrl },
+                { shouldPlay: true }
+            );
+
+            sound.current = newSound;
+
+            // Auto cleanup when finished
+            newSound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setIsPlayingAudio(false);
+                }
+            });
+
+        } catch (error: any) {
+            console.error('Audio error:', error);
+            // Silently fail in study mode - don't interrupt learning
+        } finally {
+            setIsPlayingAudio(false);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (currentIndex <= 0) return;
+
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            setCurrentIndex(currentIndex - 1);
+            setIsFlipped(false);
+            flipAnim.setValue(0);
+            swipeAnim.setValue({ x: 0, y: 0 });
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            }).start();
+        });
+    };
+
+    const handleContinue = () => {
         goToNext();
     };
 
-    const goToNext = (currentKnownCards?: Set<string>) => {
+    const goToNext = () => {
         if (currentIndex >= flashcards.length - 1) {
             // Finished all cards
-            const correct = (currentKnownCards || knownCards).size;
-            const total = flashcards.length;
             navigation.replace('Result', {
                 type: 'FLASHCARD',
-                total,
-                correct,
+                total: flashcards.length,
+                correct: flashcards.length, // All cards reviewed
                 deckId,
             });
             return;
@@ -125,23 +221,23 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
             },
             onPanResponderRelease: (_, gesture) => {
                 if (gesture.dx > SWIPE_THRESHOLD) {
-                    // Swipe right - Known
+                    // Swipe right - Continue
                     Animated.timing(swipeAnim, {
                         toValue: { x: SCREEN_WIDTH, y: 0 },
                         duration: 250,
                         useNativeDriver: true,
                     }).start(() => {
-                        handleKnown();
+                        handleContinue();
                         swipeAnim.setValue({ x: 0, y: 0 });
                     });
                 } else if (gesture.dx < -SWIPE_THRESHOLD) {
-                    // Swipe left - Not known
+                    // Swipe left - Previous
                     Animated.timing(swipeAnim, {
                         toValue: { x: -SCREEN_WIDTH, y: 0 },
                         duration: 250,
                         useNativeDriver: true,
                     }).start(() => {
-                        handleNotKnown();
+                        handlePrevious();
                         swipeAnim.setValue({ x: 0, y: 0 });
                     });
                 } else {
@@ -239,6 +335,24 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
                     ]}
                     {...panResponder.panHandlers}
                 >
+                    {/* Audio Button - Top Right */}
+                    <TouchableOpacity
+                        style={styles.audioButtonFloating}
+                        onPress={() => playPronunciation(currentCard.word)}
+                        disabled={isPlayingAudio}
+                        activeOpacity={0.7}
+                    >
+                        {isPlayingAudio ? (
+                            <ActivityIndicator size="small" color="#007AFF" />
+                        ) : (
+                            <Ionicons
+                                name="volume-high"
+                                size={28}
+                                color="#007AFF"
+                            />
+                        )}
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                         activeOpacity={1}
                         onPress={flipCard}
@@ -286,25 +400,26 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
 
                 {/* Swipe Hints */}
                 <View style={styles.hintsContainer}>
-                    <Text style={styles.hintLeft}>← Học tiếp</Text>
-                    <Text style={styles.hintRight}>Đã nhớ →</Text>
+                    <Text style={styles.hintLeft}>← Previous</Text>
+                    <Text style={styles.hintRight}>Continue →</Text>
                 </View>
             </View>
 
             {/* Action Buttons */}
             <View style={styles.actionsContainer}>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.notKnownButton]}
-                    onPress={handleNotKnown}
+                    style={[styles.actionButton, styles.previousButton]}
+                    onPress={handlePrevious}
+                    disabled={currentIndex === 0}
                 >
-                    <Text style={styles.actionButtonText}>Học tiếp</Text>
+                    <Text style={styles.actionButtonText}>← Previous</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.knownButton]}
-                    onPress={handleKnown}
+                    style={[styles.actionButton, styles.continueButton]}
+                    onPress={handleContinue}
                 >
-                    <Text style={styles.actionButtonText}>Đã nhớ</Text>
+                    <Text style={styles.actionButtonText}>Continue →</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -378,6 +493,23 @@ const styles = StyleSheet.create({
     cardWrapper: {
         width: SCREEN_WIDTH - 40,
         height: 400,
+    },
+    audioButtonFloating: {
+        position: 'absolute',
+        top: -50,
+        right: 10,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#FFF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 5,
+        zIndex: 999,
     },
     card: {
         flex: 1,
@@ -456,12 +588,12 @@ const styles = StyleSheet.create({
     },
     hintLeft: {
         fontSize: 14,
-        color: '#FF3B30',
+        color: '#8E8E93',
         fontWeight: '500',
     },
     hintRight: {
         fontSize: 14,
-        color: '#34C759',
+        color: '#007AFF',
         fontWeight: '500',
     },
     actionsContainer: {
@@ -476,11 +608,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    notKnownButton: {
-        backgroundColor: '#FF3B30',
+    previousButton: {
+        backgroundColor: '#8E8E93',
     },
-    knownButton: {
-        backgroundColor: '#34C759',
+    continueButton: {
+        backgroundColor: '#007AFF',
     },
     actionButtonText: {
         fontSize: 17,

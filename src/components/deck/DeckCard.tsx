@@ -1,12 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Deck } from '../../types/models';
 
 interface DeckCardProps {
     deck: Deck;
     onPress: () => void;
+    onRemove?: () => void;
+    showRemoveButton?: boolean;
 }
 
-export default function DeckCard({ deck, onPress }: DeckCardProps) {
+export default function DeckCard({ deck, onPress, onRemove, showRemoveButton = false }: DeckCardProps) {
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -30,11 +33,25 @@ export default function DeckCard({ deck, onPress }: DeckCardProps) {
                 <Text style={styles.title} numberOfLines={2}>
                     {deck.title}
                 </Text>
-                {deck.is_public && (
-                    <View style={styles.publicBadge}>
-                        <Text style={styles.publicBadgeText}>Public</Text>
-                    </View>
-                )}
+                <View style={styles.headerRight}>
+                    {deck.is_public && (
+                        <View style={styles.publicBadge}>
+                            <Text style={styles.publicBadgeText}>Public</Text>
+                        </View>
+                    )}
+                    {showRemoveButton && onRemove && (
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                onRemove();
+                            }}
+                            style={styles.removeButton}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
 
             {deck.description && (
@@ -79,12 +96,20 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         marginBottom: 8,
     },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
     title: {
         flex: 1,
         fontSize: 20,
         fontWeight: '700',
         color: '#000',
         marginRight: 12,
+    },
+    removeButton: {
+        padding: 4,
     },
     publicBadge: {
         backgroundColor: '#E8F5E9',

@@ -1,6 +1,6 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Alert,
     KeyboardAvoidingView,
@@ -16,6 +16,7 @@ import {
 import { decksAPI } from '../../api/decks';
 import { useAuth } from '../../hooks/useAuth';
 import { MainTabParamList } from '../../navigation/types';
+import { Deck } from '../../types/models';
 import { generateUUID } from '../../utils/uuid';
 
 type CreateDeckScreenNavigationProp = BottomTabNavigationProp<
@@ -31,6 +32,21 @@ export default function CreateDeckScreen() {
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [existingDecks, setExistingDecks] = useState<Deck[]>([]);
+
+    useEffect(() => {
+        const loadDecks = async () => {
+            if (user?.id) {
+                try {
+                    const decks = await decksAPI.getDecks(user.id);
+                    setExistingDecks(decks);
+                } catch (error) {
+                    console.error('Error loading decks:', error);
+                }
+            }
+        };
+        loadDecks();
+    }, [user?.id]);
 
     const handleCreate = async () => {
         // Validation
@@ -44,6 +60,17 @@ export default function CreateDeckScreen() {
             return;
         }
 
+        // Check for duplicate deck names (case-insensitive)
+        const normalizedTitle = title.trim().toLowerCase();
+        const isDuplicate = existingDecks.some(
+            deck => deck.title.toLowerCase() === normalizedTitle
+        );
+
+        if (isDuplicate) {
+            Alert.alert('Error', 'A deck with this title already exists. Please choose a different title.');
+            return;
+        }
+
         setIsLoading(true);
         try {
             const newDeck = {
@@ -54,7 +81,7 @@ export default function CreateDeckScreen() {
                 is_public: isPublic,
             };
 
-            const createdDeck = await decksAPI.createDeck(newDeck);
+            await decksAPI.createDeck(newDeck);
 
             // Reset form
             setTitle('');

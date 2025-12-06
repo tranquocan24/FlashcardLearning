@@ -1,7 +1,7 @@
 // Authentication API
 import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../types';
 import { generateUUID } from '../utils/uuid';
-import API from './index';
+import API from './client';
 
 interface GoogleLoginRequest {
   googleId: string;
@@ -40,10 +40,17 @@ export const authAPI = {
   // Google Sign-In
   async googleLogin(data: GoogleLoginRequest): Promise<LoginResponse> {
     try {
+      console.log('API: Sending Google login request to /api/auth/google');
+      console.log('API: Request data:', data);
       const response = await API.post('/api/auth/google', data);
+      console.log('API: Response received:', response.data);
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Google sign-in failed');
+      console.error('API: Google login request failed');
+      console.error('API: Error response:', error.response?.data);
+      console.error('API: Error status:', error.response?.status);
+      console.error('API: Error message:', error.message);
+      throw new Error(error.response?.data?.error || error.message || 'Google sign-in failed');
     }
   },
 

@@ -19,6 +19,7 @@ export type MainTabParamList = {
 
 export type HomeStackParamList = {
   HomeScreen: undefined;
+  FolderDetail: { folderId: string };
   DeckDetail: { deckId: string };
   AddFlashcard: { deckId: string };
   EditFlashcard: { flashcardId: string; deckId: string };

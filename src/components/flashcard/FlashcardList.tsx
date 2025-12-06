@@ -1,4 +1,7 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Flashcard } from '../../types/models';
 
 interface FlashcardListProps {
@@ -12,6 +15,74 @@ export default function FlashcardList({
     onEdit,
     onDelete,
 }: FlashcardListProps) {
+    const [playingId, setPlayingId] = useState<string | null>(null);
+    const sound = useRef<Audio.Sound | null>(null);
+
+    const findAudioUrl = (data: any[]): string | null => {
+        for (const entry of data) {
+            if (!entry.phonetics) continue;
+            const usAudio = entry.phonetics.find((p: any) =>
+                p.audio && (p.audio.includes('-us.mp3') || p.audio.includes('-US.mp3'))
+            );
+            if (usAudio) return usAudio.audio;
+        }
+        for (const entry of data) {
+            if (!entry.phonetics) continue;
+            const anyAudio = entry.phonetics.find((p: any) => p.audio);
+            if (anyAudio) return anyAudio.audio;
+        }
+        return null;
+    };
+
+    const playPronunciation = async (word: string, flashcardId: string) => {
+        if (!word.trim()) return;
+
+        setPlayingId(flashcardId);
+        try {
+            if (sound.current) {
+                await sound.current.unloadAsync();
+                sound.current = null;
+            }
+
+            const response = await fetch(
+                `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.trim())}`
+            );
+
+            if (!response.ok) {
+                throw new Error('Word not found or no pronunciation available');
+            }
+
+            const data = await response.json();
+            const audioUrl = findAudioUrl(data);
+
+            if (!audioUrl) {
+                throw new Error('No pronunciation audio available for this word');
+            }
+
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                { uri: audioUrl },
+                { shouldPlay: true }
+            );
+
+            sound.current = newSound;
+
+            newSound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded && status.didJustFinish) {
+                    setPlayingId(null);
+                }
+            });
+
+        } catch (error: any) {
+            console.error('Audio error:', error);
+            Alert.alert(
+                'Pronunciation Error',
+                error.message || 'Could not play pronunciation.'
+            );
+        } finally {
+            setPlayingId(null);
+        }
+    };
+
     return (
         <View style={styles.container}>
             {flashcards.map((flashcard, index) => (
@@ -22,7 +93,25 @@ export default function FlashcardList({
                         </View>
 
                         <View style={styles.textContent}>
-                            <Text style={styles.word}>{flashcard.word}</Text>
+                            <View style={styles.wordRow}>
+                                <Text style={styles.word}>{flashcard.word}</Text>
+                                <TouchableOpacity
+                                    style={styles.audioButton}
+                                    onPress={() => playPronunciation(flashcard.word, flashcard.id)}
+                                    disabled={playingId === flashcard.id}
+                                    activeOpacity={0.7}
+                                >
+                                    {playingId === flashcard.id ? (
+                                        <ActivityIndicator size="small" color="#007AFF" />
+                                    ) : (
+                                        <Ionicons
+                                            name="volume-high"
+                                            size={20}
+                                            color="#007AFF"
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
                             <Text style={styles.meaning}>{flashcard.meaning}</Text>
                             {flashcard.example && (
                                 <Text style={styles.example}>"{flashcard.example}"</Text>
@@ -91,10 +180,20 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: 6,
     },
+    wordRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
     word: {
         fontSize: 17,
         fontWeight: '600',
         color: '#000',
+        flex: 1,
+    },
+    audioButton: {
+        padding: 4,
     },
     meaning: {
         fontSize: 15,

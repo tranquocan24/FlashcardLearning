@@ -1,7 +1,7 @@
 // Flashcards API
 import { Flashcard } from '../types';
 import { generateUUID } from '../utils/uuid';
-import API from './index';
+import API from './client';
 
 export const flashcardsAPI = {
   // Get all flashcards for a deck

@@ -1,7 +1,7 @@
 // Progress & Sessions API
 import { Progress, Session } from '../types';
 import { generateUUID } from '../utils/uuid';
-import API from './index';
+import API from './client';
 
 export const progressAPI = {
   // Get user progress for a deck

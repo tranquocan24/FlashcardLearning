@@ -10,12 +10,22 @@ export interface User {
   updated_at: string;
 }
 
+export interface Folder {
+  id: string; // UUID
+  name: string;
+  user_id: string;
+  deck_count?: number; // Count from JOIN
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Deck {
   id: string; // UUID
   title: string;
   description?: string;
   is_public: boolean;
   owner_id: string;
+  folder_id?: string | null; // FK to folders
   owner_name?: string; // Joined from users table
   owner_email?: string;
   flashcard_count?: number; // Count from JOIN

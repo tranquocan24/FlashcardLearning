@@ -1,6 +1,6 @@
 // Users API
 import { User } from '../types';
-import API from './index';
+import API from './client';
 
 export const usersAPI = {
   // Get user by ID

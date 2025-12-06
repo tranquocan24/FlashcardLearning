@@ -1,11 +1,14 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { InteractionManager } from 'react-native';
 import { GOOGLE_CONFIG } from '../config/google';
 
 class GoogleAuthService {
     private static instance: GoogleAuthService;
+    private isConfigured: boolean = false;
+    private configurationPromise: Promise<void> | null = null;
 
     private constructor() {
-        this.configure();
+        // Don't configure immediately, wait for proper initialization
     }
 
     public static getInstance(): GoogleAuthService {
@@ -15,23 +18,55 @@ class GoogleAuthService {
         return GoogleAuthService.instance;
     }
 
-    private configure() {
-        try {
-            GoogleSignin.configure({
-                webClientId: GOOGLE_CONFIG.webClientId,
-                offlineAccess: true,
-                scopes: GOOGLE_CONFIG.scopes,
-            });
-        } catch (error) {
-            console.error('Google Sign-In configuration error:', error);
+    private async configure(): Promise<void> {
+        if (this.isConfigured) {
+            return;
         }
+
+        if (this.configurationPromise) {
+            return this.configurationPromise;
+        }
+
+        this.configurationPromise = new Promise<void>((resolve) => {
+            // Wait for all interactions to complete (ensures Activity is ready)
+            InteractionManager.runAfterInteractions(() => {
+                try {
+                    GoogleSignin.configure({
+                        webClientId: GOOGLE_CONFIG.webClientId,
+                        offlineAccess: true,
+                        scopes: GOOGLE_CONFIG.scopes,
+                    });
+                    this.isConfigured = true;
+                    console.log('Google Sign-In configured successfully');
+                    resolve();
+                } catch (error) {
+                    console.error('Google Sign-In configuration error:', error);
+                    resolve(); // Resolve anyway to avoid hanging
+                }
+            });
+        });
+
+        return this.configurationPromise;
     }
 
     async signIn() {
         try {
             console.log('=== Google Sign-In Start ===');
+
+            // Ensure Google Sign-In is configured
+            await this.configure();
+
+            // Additional delay to ensure Activity is fully ready
+            await new Promise(resolve => setTimeout(resolve, 300));
+
             console.log('Checking Play Services...');
-            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+            const hasPlayServices = await GoogleSignin.hasPlayServices({
+                showPlayServicesUpdateDialog: true
+            });
+
+            if (!hasPlayServices) {
+                throw new Error('Play Services not available');
+            }
 
             console.log('Starting Google Sign-In...');
             const result = await GoogleSignin.signIn();
@@ -68,6 +103,8 @@ class GoogleAuthService {
                 errorMessage = 'Sign-in already in progress';
             } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
                 errorMessage = 'Play Services not available';
+            } else if (error.code === 'RNGoogleSignin' && error.message?.includes('activity')) {
+                errorMessage = 'App not ready. Please try again in a moment';
             } else if (error.message) {
                 errorMessage = error.message;
             }
