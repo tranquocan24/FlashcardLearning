@@ -9,7 +9,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { flashcardsAPI } from '../../api/flashcards';
+import { useTheme } from '../../context/ThemeContext';
 import { HomeStackParamList } from '../../navigation/types';
 import { Flashcard } from '../../types/models';
 
@@ -30,6 +32,8 @@ export default function QuizScreen({ navigation, route }: Props) {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [correctCount, setCorrectCount] = useState(0);
     const [showResult, setShowResult] = useState(false);
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     useEffect(() => {
         fetchFlashcards();
@@ -120,7 +124,7 @@ export default function QuizScreen({ navigation, route }: Props) {
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -259,17 +263,17 @@ export default function QuizScreen({ navigation, route }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
         paddingTop: 50,
     },
     backButtonContainer: {
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 8,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
     },
     backButton: {
         flexDirection: 'row',
@@ -279,41 +283,41 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         fontSize: 24,
-        color: '#007AFF',
+        color: colors.primary,
         marginRight: 4,
     },
     backText: {
         fontSize: 17,
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '500',
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     progressContainer: {
         padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5EA',
+        borderBottomColor: colors.border,
     },
     progressBar: {
         height: 6,
-        backgroundColor: '#E5E5EA',
+        backgroundColor: colors.borderLight,
         borderRadius: 3,
         overflow: 'hidden',
         marginBottom: 8,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#34C759',
+        backgroundColor: colors.success,
         borderRadius: 3,
     },
     progressText: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         textAlign: 'center',
         fontWeight: '500',
     },
@@ -324,12 +328,12 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     questionContainer: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 24,
         marginBottom: 24,
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
@@ -337,13 +341,13 @@ const styles = StyleSheet.create({
     },
     questionLabel: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         marginBottom: 12,
     },
     questionWord: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         textAlign: 'center',
     },
     optionsContainer: {
@@ -354,21 +358,21 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     optionButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderWidth: 2,
-        borderColor: '#E5E5EA',
+        borderColor: colors.border,
     },
     optionButtonSelected: {
-        backgroundColor: '#F0F9FF',
-        borderColor: '#007AFF',
+        backgroundColor: colors.secondaryBackground,
+        borderColor: colors.primary,
     },
     optionButtonCorrect: {
-        backgroundColor: '#F0FFF4',
-        borderColor: '#34C759',
+        backgroundColor: colors.secondaryBackground,
+        borderColor: colors.success,
     },
     optionButtonWrong: {
-        backgroundColor: '#FFF5F5',
-        borderColor: '#FF3B30',
+        backgroundColor: colors.secondaryBackground,
+        borderColor: colors.error,
     },
     optionContent: {
         flexDirection: 'row',
@@ -379,7 +383,7 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.secondaryBackground,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -387,29 +391,29 @@ const styles = StyleSheet.create({
     optionNumberText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#3C3C43',
+        color: colors.text,
     },
     optionText: {
         flex: 1,
         fontSize: 16,
-        color: '#000',
+        color: colors.text,
     },
     optionTextCorrect: {
-        color: '#34C759',
+        color: colors.success,
         fontWeight: '600',
     },
     optionTextWrong: {
-        color: '#FF3B30',
+        color: colors.error,
         fontWeight: '600',
     },
     checkmark: {
         fontSize: 24,
-        color: '#34C759',
+        color: colors.success,
         marginLeft: 8,
     },
     crossmark: {
         fontSize: 24,
-        color: '#FF3B30',
+        color: colors.error,
         marginLeft: 8,
     },
     feedback: {
@@ -418,14 +422,14 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     feedbackCorrect: {
-        backgroundColor: '#F0FFF4',
+        backgroundColor: colors.secondaryBackground,
         borderWidth: 1,
-        borderColor: '#34C759',
+        borderColor: colors.success,
     },
     feedbackWrong: {
-        backgroundColor: '#FFF5F5',
+        backgroundColor: colors.secondaryBackground,
         borderWidth: 1,
-        borderColor: '#FF3B30',
+        borderColor: colors.error,
     },
     feedbackText: {
         fontSize: 18,
@@ -437,27 +441,27 @@ const styles = StyleSheet.create({
         marginTop: 12,
         paddingTop: 12,
         borderTopWidth: 1,
-        borderTopColor: '#E5E5EA',
+        borderTopColor: colors.border,
     },
     exampleLabel: {
         fontSize: 12,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         marginBottom: 4,
         fontWeight: '600',
     },
     exampleText: {
         fontSize: 14,
-        color: '#3C3C43',
+        color: colors.text,
         fontStyle: 'italic',
     },
     footer: {
         padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderTopWidth: 1,
-        borderTopColor: '#E5E5EA',
+        borderTopColor: colors.border,
     },
     nextButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
@@ -469,6 +473,6 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
 });

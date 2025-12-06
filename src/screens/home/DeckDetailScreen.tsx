@@ -10,9 +10,11 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
 import { flashcardsAPI } from '../../api/flashcards';
 import FlashcardList from '../../components/flashcard/FlashcardList';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { HomeStackParamList } from '../../navigation/types';
 import { Deck, Flashcard } from '../../types/models';
@@ -27,6 +29,8 @@ export default function DeckDetailScreen() {
     const navigation = useNavigation<DeckDetailScreenNavigationProp>();
     const route = useRoute<DeckDetailScreenRouteProp>();
     const { user } = useAuth();
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
     const { deckId } = route.params;
 
     const [deck, setDeck] = useState<Deck | null>(null);
@@ -123,7 +127,7 @@ export default function DeckDetailScreen() {
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -219,22 +223,22 @@ export default function DeckDetailScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
     },
     header: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         paddingTop: 60,
         paddingBottom: 24,
         paddingHorizontal: 20,
@@ -247,7 +251,7 @@ const styles = StyleSheet.create({
     },
     backButtonText: {
         fontSize: 28,
-        color: '#007AFF',
+        color: colors.primary,
     },
     headerContent: {
         gap: 8,
@@ -255,11 +259,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
     },
     description: {
         fontSize: 15,
-        color: '#666',
+        color: colors.secondaryText,
         lineHeight: 22,
     },
     metaRow: {
@@ -270,10 +274,10 @@ const styles = StyleSheet.create({
     },
     metaText: {
         fontSize: 14,
-        color: '#999',
+        color: colors.tertiaryText,
     },
     publicBadge: {
-        backgroundColor: '#E8F5E9',
+        backgroundColor: colors.success + '20',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
@@ -281,20 +285,20 @@ const styles = StyleSheet.create({
     publicBadgeText: {
         fontSize: 11,
         fontWeight: '600',
-        color: '#4CAF50',
+        color: colors.success,
     },
     actionContainer: {
         padding: 20,
         gap: 12,
     },
     primaryButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
     },
     disabledButton: {
-        backgroundColor: '#CCC',
+        backgroundColor: colors.border,
     },
     primaryButtonText: {
         fontSize: 17,
@@ -302,17 +306,17 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     secondaryButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#007AFF',
+        borderColor: colors.primary,
     },
     secondaryButtonText: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#007AFF',
+        color: colors.primary,
     },
     flashcardsSection: {
         padding: 20,
@@ -320,24 +324,24 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         marginBottom: 16,
     },
     emptyContainer: {
         alignItems: 'center',
         paddingVertical: 40,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
     },
     emptyText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#666',
+        color: colors.secondaryText,
         marginBottom: 4,
     },
     emptySubtext: {
         fontSize: 14,
-        color: '#999',
+        color: colors.tertiaryText,
     },
     deleteButton: {
         margin: 20,
@@ -348,10 +352,10 @@ const styles = StyleSheet.create({
     deleteButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FF3B30',
+        color: colors.error,
     },
     errorText: {
         fontSize: 16,
-        color: '#666',
+        color: colors.secondaryText,
     },
 });

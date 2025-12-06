@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { theme } from '../../../constants/theme';
+import { ColorTheme } from '../../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { Folder } from '../../types/models';
 
 interface FolderCardProps {
@@ -18,6 +19,9 @@ interface FolderCardProps {
 }
 
 export function FolderCard({ folder, onPress, onEdit, onDelete }: FolderCardProps) {
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
+
     const handleLongPress = () => {
         Alert.alert(
             folder.name,
@@ -61,7 +65,7 @@ export function FolderCard({ folder, onPress, onEdit, onDelete }: FolderCardProp
             activeOpacity={0.7}
         >
             <View style={styles.iconContainer}>
-                <Ionicons name="folder" size={40} color={theme.colors.primary} />
+                <Ionicons name="folder" size={40} color={colors.primary} />
             </View>
 
             <View style={styles.content}>
@@ -73,20 +77,20 @@ export function FolderCard({ folder, onPress, onEdit, onDelete }: FolderCardProp
                 </Text>
             </View>
 
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={20} color={colors.secondaryText} />
         </TouchableOpacity>
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.colors.surface,
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-        shadowColor: '#000',
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -101,11 +105,11 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 18,
         fontWeight: '600',
-        color: theme.colors.text,
+        color: colors.text,
         marginBottom: 4,
     },
     deckCount: {
         fontSize: 14,
-        color: theme.colors.textSecondary,
+        color: colors.secondaryText,
     },
 });

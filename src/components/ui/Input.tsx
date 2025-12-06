@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTheme } from "../../context/ThemeContext";
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -28,23 +29,25 @@ export const Input: React.FC<InputProps> = ({
 }) => {
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const [isFocused, setIsFocused] = useState(false);
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
 
       <View
         style={[
           styles.inputContainer,
-          isFocused && styles.inputContainerFocused,
-          error && styles.inputContainerError,
+          { borderColor: colors.border, backgroundColor: colors.card },
+          isFocused && { borderColor: colors.primary },
+          error && { borderColor: colors.error },
         ]}
       >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
 
         <TextInput
-          style={[styles.input, style]}
-          placeholderTextColor="#999"
+          style={[styles.input, { color: colors.text }, style]}
+          placeholderTextColor={colors.tertiaryText}
           secureTextEntry={isSecure}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -56,7 +59,7 @@ export const Input: React.FC<InputProps> = ({
             style={styles.rightIcon}
             onPress={() => setIsSecure(!isSecure)}
           >
-            <Text style={styles.eyeIcon}>{isSecure ? "Show" : "Hide"}</Text>
+            <Text style={[styles.eyeIcon, { color: colors.primary }]}>{isSecure ? "Show" : "Hide"}</Text>
           </TouchableOpacity>
         )}
 
@@ -65,7 +68,7 @@ export const Input: React.FC<InputProps> = ({
         )}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
     </View>
   );
 };
@@ -77,29 +80,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#DDD",
     borderRadius: 8,
-    backgroundColor: "#FFF",
-  },
-  inputContainerFocused: {
-    borderColor: "#007AFF",
-  },
-  inputContainerError: {
-    borderColor: "#FF3B30",
   },
   input: {
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#333",
   },
   leftIcon: {
     paddingLeft: 12,
@@ -109,11 +102,9 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     fontSize: 13,
-    color: "#ccc",
   },
   error: {
     fontSize: 12,
-    color: "#FF3B30",
     marginTop: 4,
   },
 });

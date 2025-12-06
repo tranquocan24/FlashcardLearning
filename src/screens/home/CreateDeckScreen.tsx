@@ -13,7 +13,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { MainTabParamList } from '../../navigation/types';
 import { Deck } from '../../types/models';
@@ -27,6 +29,8 @@ type CreateDeckScreenNavigationProp = BottomTabNavigationProp<
 export default function CreateDeckScreen() {
     const navigation = useNavigation<CreateDeckScreenNavigationProp>();
     const { user } = useAuth();
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -199,7 +203,7 @@ export default function CreateDeckScreen() {
                         <Switch
                             value={isPublic}
                             onValueChange={setIsPublic}
-                            trackColor={{ false: '#E0E0E0', true: '#007AFF' }}
+                            trackColor={{ false: colors.border, true: colors.primary }}
                             thumbColor="#FFF"
                             disabled={isLoading}
                         />
@@ -226,10 +230,10 @@ export default function CreateDeckScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
@@ -241,21 +245,21 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingBottom: 20,
         paddingHorizontal: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
+        borderBottomColor: colors.border,
     },
     cancelButton: {
         paddingVertical: 8,
     },
     cancelButtonText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: colors.primary,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
     },
     placeholder: {
         width: 60,
@@ -270,20 +274,20 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
     },
     required: {
-        color: '#FF3B30',
+        color: colors.error,
     },
     input: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: colors.border,
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
-        color: '#000',
+        color: colors.text,
     },
     textArea: {
         height: 120,
@@ -291,14 +295,14 @@ const styles = StyleSheet.create({
     },
     hint: {
         fontSize: 12,
-        color: '#999',
+        color: colors.tertiaryText,
         textAlign: 'right',
     },
     switchField: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 16,
     },
@@ -309,29 +313,29 @@ const styles = StyleSheet.create({
     switchLabel: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         marginBottom: 4,
     },
     switchDescription: {
         fontSize: 13,
-        color: '#666',
+        color: colors.secondaryText,
         lineHeight: 18,
     },
     footer: {
         padding: 20,
         paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderTopWidth: 1,
-        borderTopColor: '#E5E5E5',
+        borderTopColor: colors.border,
     },
     createButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
     },
     createButtonDisabled: {
-        backgroundColor: '#CCC',
+        backgroundColor: colors.border,
     },
     createButtonText: {
         fontSize: 17,

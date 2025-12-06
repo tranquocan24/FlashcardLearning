@@ -8,7 +8,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { flashcardsAPI } from '../../api/flashcards';
+import { useTheme } from '../../context/ThemeContext';
 import { HomeStackParamList } from '../../navigation/types';
 import { Flashcard } from '../../types/models';
 
@@ -28,21 +30,21 @@ const modes: ModeOption[] = [
         title: 'Flashcard Study',
         description: 'Lật thẻ để xem nghĩa và ví dụ',
         icon: '🃏',
-        color: '#007AFF',
+        color: 'primary' as const,
     },
     {
         id: 'QUIZ',
         title: 'Quiz',
         description: 'Trắc nghiệm 4 đáp án',
         icon: '✍️',
-        color: '#34C759',
+        color: 'success' as const,
     },
     {
         id: 'MATCH',
         title: 'Match Game',
         description: 'Nối từ với nghĩa tương ứng',
         icon: '🎯',
-        color: '#FF9500',
+        color: 'warning' as const,
     },
 ];
 
@@ -50,6 +52,8 @@ export default function LearningModeScreen({ navigation, route }: Props) {
     const { deckId } = route.params;
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     useEffect(() => {
         fetchFlashcards();
@@ -107,7 +111,7 @@ export default function LearningModeScreen({ navigation, route }: Props) {
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -135,25 +139,31 @@ export default function LearningModeScreen({ navigation, route }: Props) {
             </View>
 
             <View style={styles.modesContainer}>
-                {modes.map((mode) => (
-                    <TouchableOpacity
-                        key={mode.id}
-                        style={[styles.modeCard, { borderLeftColor: mode.color }]}
-                        onPress={() => handleModeSelect(mode.id)}
-                        activeOpacity={0.7}
-                    >
-                        <View style={styles.modeIconContainer}>
-                            <Text style={styles.modeIcon}>{mode.icon}</Text>
-                        </View>
-                        <View style={styles.modeContent}>
-                            <Text style={styles.modeTitle}>{mode.title}</Text>
-                            <Text style={styles.modeDescription}>{mode.description}</Text>
-                        </View>
-                        <View style={styles.modeArrow}>
-                            <Text style={styles.arrowText}>›</Text>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                {modes.map((mode) => {
+                    let borderColor = colors.primary;
+                    if (mode.color === 'success') borderColor = colors.success;
+                    else if (mode.color === 'warning') borderColor = colors.warning;
+
+                    return (
+                        <TouchableOpacity
+                            key={mode.id}
+                            style={[styles.modeCard, { borderLeftColor: borderColor }]}
+                            onPress={() => handleModeSelect(mode.id)}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.modeIconContainer}>
+                                <Text style={styles.modeIcon}>{mode.icon}</Text>
+                            </View>
+                            <View style={styles.modeContent}>
+                                <Text style={styles.modeTitle}>{mode.title}</Text>
+                                <Text style={styles.modeDescription}>{mode.description}</Text>
+                            </View>
+                            <View style={styles.modeArrow}>
+                                <Text style={styles.arrowText}>›</Text>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
 
             {flashcards.length === 0 && (
@@ -169,23 +179,23 @@ export default function LearningModeScreen({ navigation, route }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
         paddingTop: 50, // Thêm padding để tránh camera notch
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     backButtonContainer: {
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 8,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
     },
     backButton: {
         flexDirection: 'row',
@@ -195,29 +205,29 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         fontSize: 24,
-        color: '#007AFF',
+        color: colors.primary,
         marginRight: 4,
     },
     backText: {
         fontSize: 17,
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '500',
     },
     header: {
         padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5EA',
+        borderBottomColor: colors.border,
     },
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         marginBottom: 4,
     },
     subtitle: {
         fontSize: 15,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
     modesContainer: {
         padding: 16,
@@ -225,12 +235,12 @@ const styles = StyleSheet.create({
     modeCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
         borderLeftWidth: 4,
-        shadowColor: '#000',
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 3,
@@ -241,7 +251,7 @@ const styles = StyleSheet.create({
         height: 48,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.secondaryBackground,
         borderRadius: 10,
         marginRight: 12,
     },
@@ -254,19 +264,19 @@ const styles = StyleSheet.create({
     modeTitle: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         marginBottom: 2,
     },
     modeDescription: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
     modeArrow: {
         marginLeft: 8,
     },
     arrowText: {
         fontSize: 28,
-        color: '#C7C7CC',
+        color: colors.tertiaryText,
         fontWeight: '300',
     },
     emptyContainer: {
@@ -278,12 +288,12 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         marginBottom: 8,
     },
     emptySubtext: {
         fontSize: 15,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         textAlign: 'center',
     },
 });

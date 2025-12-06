@@ -12,7 +12,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { usersAPI } from '../../api/users';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { SettingsStackParamList } from '../../navigation/types';
 
@@ -24,6 +26,8 @@ type ChangePasswordScreenNavigationProp = NativeStackNavigationProp<
 export default function ChangePasswordScreen() {
     const navigation = useNavigation<ChangePasswordScreenNavigationProp>();
     const { user } = useAuth();
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -269,10 +273,10 @@ export default function ChangePasswordScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
@@ -284,21 +288,21 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingBottom: 20,
         paddingHorizontal: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
+        borderBottomColor: colors.border,
     },
     cancelButton: {
         paddingVertical: 8,
     },
     cancelButtonText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: colors.primary,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
     },
     placeholder: {
         width: 60,
@@ -313,24 +317,24 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
     },
     required: {
-        color: '#FF3B30',
+        color: colors.error,
     },
     inputContainer: {
         position: 'relative',
     },
     input: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: colors.border,
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         paddingRight: 50,
         fontSize: 16,
-        color: '#000',
+        color: colors.text,
     },
     eyeButton: {
         position: 'absolute',
@@ -343,42 +347,42 @@ const styles = StyleSheet.create({
     },
     errorText: {
         fontSize: 13,
-        color: '#FF3B30',
+        color: colors.error,
         marginTop: -4,
     },
     tipBox: {
-        backgroundColor: '#FFF9E6',
+        backgroundColor: colors.secondaryBackground,
         borderRadius: 12,
         padding: 16,
         borderWidth: 1,
-        borderColor: '#FFE082',
+        borderColor: colors.borderLight,
     },
     tipTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         marginBottom: 8,
     },
     tipText: {
         fontSize: 13,
-        color: '#666',
+        color: colors.secondaryText,
         lineHeight: 20,
     },
     footer: {
         padding: 20,
         paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderTopWidth: 1,
-        borderTopColor: '#E5E5E5',
+        borderTopColor: colors.border,
     },
     saveButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
     },
     saveButtonDisabled: {
-        backgroundColor: '#CCC',
+        backgroundColor: colors.border,
     },
     saveButtonText: {
         fontSize: 17,

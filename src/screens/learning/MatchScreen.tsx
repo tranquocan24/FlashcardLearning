@@ -8,7 +8,9 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { flashcardsAPI } from '../../api/flashcards';
+import { useTheme } from '../../context/ThemeContext';
 import { HomeStackParamList } from '../../navigation/types';
 import { Flashcard } from '../../types/models';
 
@@ -31,6 +33,8 @@ export default function MatchScreen({ navigation, route }: Props) {
     const [selectedMeaning, setSelectedMeaning] = useState<MatchPair | null>(null);
     const [matchedCount, setMatchedCount] = useState(0);
     const [attempts, setAttempts] = useState(0);
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     useEffect(() => {
         fetchFlashcards();
@@ -149,7 +153,7 @@ export default function MatchScreen({ navigation, route }: Props) {
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -272,17 +276,17 @@ export default function MatchScreen({ navigation, route }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
         paddingTop: 50,
     },
     backButtonContainer: {
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 8,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
     },
     backButton: {
         flexDirection: 'row',
@@ -292,36 +296,36 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         fontSize: 24,
-        color: '#007AFF',
+        color: colors.primary,
         marginRight: 4,
     },
     backText: {
         fontSize: 17,
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '500',
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     header: {
         padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5EA',
+        borderBottomColor: colors.border,
     },
     progressBar: {
         height: 6,
-        backgroundColor: '#E5E5EA',
+        backgroundColor: colors.borderLight,
         borderRadius: 3,
         overflow: 'hidden',
         marginBottom: 12,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#FF9500',
+        backgroundColor: colors.warning,
         borderRadius: 3,
     },
     statsRow: {
@@ -330,18 +334,18 @@ const styles = StyleSheet.create({
     },
     statsText: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         fontWeight: '500',
     },
     instructionContainer: {
         padding: 16,
-        backgroundColor: '#FFF9E6',
+        backgroundColor: colors.secondaryBackground,
         borderBottomWidth: 1,
-        borderBottomColor: '#FFE066',
+        borderBottomColor: colors.borderLight,
     },
     instructionText: {
         fontSize: 14,
-        color: '#856404',
+        color: colors.text,
         textAlign: 'center',
         fontWeight: '500',
     },
@@ -357,14 +361,14 @@ const styles = StyleSheet.create({
     columnHeader: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#3C3C43',
+        color: colors.text,
         marginBottom: 12,
         textAlign: 'center',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
     pairButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 10,
         padding: 12,
         marginBottom: 8,
@@ -372,39 +376,39 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#E5E5EA',
-        shadowColor: '#000',
+        borderColor: colors.border,
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 1,
     },
     pairButtonSelected: {
-        backgroundColor: '#F0F9FF',
-        borderColor: '#007AFF',
+        backgroundColor: colors.secondaryBackground,
+        borderColor: colors.primary,
         transform: [{ scale: 1.02 }],
     },
     pairButtonMatched: {
-        backgroundColor: '#F0FFF4',
-        borderColor: '#34C759',
+        backgroundColor: colors.secondaryBackground,
+        borderColor: colors.success,
         opacity: 0.6,
     },
     pairText: {
         fontSize: 14,
-        color: '#000',
+        color: colors.text,
         textAlign: 'center',
         fontWeight: '500',
     },
     pairTextSelected: {
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '600',
     },
     pairTextMatched: {
-        color: '#34C759',
+        color: colors.success,
     },
     checkmark: {
         fontSize: 20,
-        color: '#34C759',
+        color: colors.success,
         position: 'absolute',
         top: 4,
         right: 4,
@@ -414,9 +418,9 @@ const styles = StyleSheet.create({
         bottom: 20,
         left: 20,
         right: 20,
-        backgroundColor: '#FFF5F5',
+        backgroundColor: colors.secondaryBackground,
         borderWidth: 1,
-        borderColor: '#FF3B30',
+        borderColor: colors.error,
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
@@ -424,10 +428,10 @@ const styles = StyleSheet.create({
     feedbackText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FF3B30',
+        color: colors.error,
     },
     emptyText: {
         fontSize: 16,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
 });

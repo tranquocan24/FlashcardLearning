@@ -145,9 +145,9 @@ export default function SettingsScreen() {
                             <Switch
                                 value={isDark}
                                 onValueChange={toggleTheme}
-                                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                                trackColor={{ false: colors.border, true: colors.success }}
                                 thumbColor="#FFF"
-                                ios_backgroundColor="#D1D1D6"
+                                ios_backgroundColor={colors.border}
                             />
                         </View>
                     </View>

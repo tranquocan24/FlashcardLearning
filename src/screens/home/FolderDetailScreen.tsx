@@ -10,16 +10,19 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { theme } from '../../../constants/theme';
+import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
 import { folderAPI } from '../../api/folders';
 import DeckCard from '../../components/deck/DeckCard';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { Deck, Folder } from '../../types/models';
 
 export default function FolderDetailScreen({ route, navigation }: any) {
     const { folderId } = route.params;
     const { user } = useAuth();
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
     const [folder, setFolder] = useState<Folder | null>(null);
     const [decks, setDecks] = useState<Deck[]>([]);
     const [loading, setLoading] = useState(true);
@@ -171,26 +174,26 @@ export default function FolderDetailScreen({ route, navigation }: any) {
         navigation.setOptions({
             headerLeft: () => (
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-                    <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
             ),
             headerRight: () => (
                 <View style={styles.headerButtons}>
                     <TouchableOpacity onPress={handleOpenAddDeck} style={styles.headerButton}>
-                        <Ionicons name="add" size={28} color={theme.colors.primary} />
+                        <Ionicons name="add" size={28} color={colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleDeleteFolder} style={styles.headerButton}>
-                        <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                        <Ionicons name="trash-outline" size={24} color={colors.error} />
                     </TouchableOpacity>
                 </View>
             ),
         });
-    }, [navigation, folder, handleOpenAddDeck, handleDeleteFolder]);
+    }, [navigation, folder, handleOpenAddDeck, handleDeleteFolder, styles, colors]);
 
     if (loading) {
         return (
             <View style={styles.centered}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -201,7 +204,7 @@ export default function FolderDetailScreen({ route, navigation }: any) {
         <View style={styles.container}>
             {decks.length === 0 ? (
                 <View style={styles.centered}>
-                    <Ionicons name="folder-open-outline" size={64} color={theme.colors.textSecondary} />
+                    <Ionicons name="folder-open-outline" size={64} color={colors.secondaryText} />
                     <Text style={styles.emptyText}>No decks in this folder</Text>
                     <Text style={styles.emptySubtext}>
                         Create a new deck or move existing ones here
@@ -245,13 +248,13 @@ export default function FolderDetailScreen({ route, navigation }: any) {
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Add Deck to Folder</Text>
                             <TouchableOpacity onPress={() => setShowAddDeckModal(false)}>
-                                <Ionicons name="close" size={28} color={theme.colors.textSecondary} />
+                                <Ionicons name="close" size={28} color={colors.secondaryText} />
                             </TouchableOpacity>
                         </View>
 
                         {availableDecks.length === 0 ? (
                             <View style={styles.emptyModalContent}>
-                                <Ionicons name="albums-outline" size={48} color={theme.colors.textSecondary} />
+                                <Ionicons name="albums-outline" size={48} color={colors.secondaryText} />
                                 <Text style={styles.emptyModalText}>No available decks</Text>
                                 <Text style={styles.emptyModalSubtext}>
                                     All your decks are already in folders
@@ -272,7 +275,7 @@ export default function FolderDetailScreen({ route, navigation }: any) {
                                                 {item.flashcard_count || 0} cards
                                             </Text>
                                         </View>
-                                        <Ionicons name="add-circle" size={24} color={theme.colors.primary} />
+                                        <Ionicons name="add-circle" size={24} color={colors.primary} />
                                     </TouchableOpacity>
                                 )}
                                 contentContainerStyle={styles.modalList}
@@ -285,10 +288,10 @@ export default function FolderDetailScreen({ route, navigation }: any) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
+        backgroundColor: colors.background,
     },
     centered: {
         flex: 1,
@@ -310,12 +313,12 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 18,
         fontWeight: '600',
-        color: theme.colors.textSecondary,
+        color: colors.secondaryText,
         marginTop: 16,
     },
     emptySubtext: {
         fontSize: 14,
-        color: theme.colors.textSecondary,
+        color: colors.tertiaryText,
         marginTop: 8,
         textAlign: 'center',
     },
@@ -325,7 +328,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '80%',
@@ -336,12 +339,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: theme.colors.border,
+        borderBottomColor: colors.border,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: theme.colors.text,
+        color: colors.text,
     },
     modalList: {
         padding: 16,
@@ -353,12 +356,12 @@ const styles = StyleSheet.create({
     emptyModalText: {
         fontSize: 16,
         fontWeight: '600',
-        color: theme.colors.textSecondary,
+        color: colors.secondaryText,
         marginTop: 12,
     },
     emptyModalSubtext: {
         fontSize: 14,
-        color: theme.colors.textSecondary,
+        color: colors.tertiaryText,
         marginTop: 4,
         textAlign: 'center',
     },
@@ -367,7 +370,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 16,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: colors.cardBackground,
         borderRadius: 12,
         marginBottom: 12,
     },
@@ -377,11 +380,11 @@ const styles = StyleSheet.create({
     deckItemTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: theme.colors.text,
+        color: colors.text,
         marginBottom: 4,
     },
     deckItemSubtitle: {
         fontSize: 14,
-        color: theme.colors.textSecondary,
+        color: colors.secondaryText,
     },
 });

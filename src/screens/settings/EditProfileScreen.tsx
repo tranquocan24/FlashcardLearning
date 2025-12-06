@@ -13,7 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { ColorTheme } from '../../../constants/theme';
 import { usersAPI } from "../../api/users";
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from "../../hooks/useAuth";
 import { SettingsStackParamList } from "../../navigation/types";
 
@@ -47,7 +49,9 @@ type EditProfileScreenNavigationProp = NativeStackNavigationProp<
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<EditProfileScreenNavigationProp>();
-  const { user, updateUser } = useAuth();
+  const { user, setUser } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const [username, setUsername] = useState(user?.username || "");
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarKey>(
@@ -240,10 +244,10 @@ export default function EditProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -255,21 +259,21 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: "#FFF",
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E5E5",
+    borderBottomColor: colors.border,
   },
   cancelButton: {
     paddingVertical: 8,
   },
   cancelButtonText: {
     fontSize: 16,
-    color: "#007AFF",
+    color: colors.primary,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#000",
+    color: colors.text,
   },
   placeholder: {
     width: 60,
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
   avatarSection: {
     alignItems: "center",
     paddingVertical: 32,
-    backgroundColor: "#FFF",
+    backgroundColor: colors.card,
     marginBottom: 20,
   },
   avatarPreview: {
@@ -286,7 +290,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     overflow: "hidden",
     marginBottom: 12,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: colors.border,
   },
   avatarImage: {
     width: "100%",
@@ -294,18 +298,18 @@ const styles = StyleSheet.create({
   },
   avatarHint: {
     fontSize: 13,
-    color: "#8E8E93",
+    color: colors.secondaryText,
     textAlign: "center",
   },
   avatarSelectionSection: {
-    backgroundColor: "#FFF",
+    backgroundColor: colors.card,
     padding: 20,
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#000",
+    color: colors.text,
     marginBottom: 16,
   },
   avatarGrid: {
@@ -319,13 +323,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#E0E0E0",
+    borderColor: colors.border,
     overflow: "hidden",
     position: "relative",
   },
   avatarOptionSelected: {
-    borderColor: "#007AFF",
-    backgroundColor: "#F0F8FF",
+    borderColor: colors.primary,
+    backgroundColor: colors.secondaryBackground,
   },
   avatarOptionImage: {
     width: "100%",
@@ -338,7 +342,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -357,54 +361,54 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#000",
+    color: colors.text,
   },
   required: {
-    color: "#FF3B30",
+    color: colors.error,
   },
   input: {
-    backgroundColor: "#FFF",
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: "#000",
+    color: colors.text,
   },
   hint: {
     fontSize: 12,
-    color: "#999",
+    color: colors.tertiaryText,
     textAlign: "right",
   },
   infoBox: {
-    backgroundColor: "#F0F9FF",
+    backgroundColor: colors.secondaryBackground,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#B3E0FF",
+    borderColor: colors.borderLight,
   },
   infoText: {
     fontSize: 13,
-    color: "#0055A5",
+    color: colors.text,
     lineHeight: 18,
     textAlign: "center",
   },
   footer: {
     padding: 20,
     paddingBottom: Platform.OS === "ios" ? 34 : 20,
-    backgroundColor: "#FFF",
+    backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: "#E5E5E5",
+    borderTopColor: colors.border,
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
   },
   saveButtonDisabled: {
-    backgroundColor: "#CCC",
+    backgroundColor: colors.border,
   },
   saveButtonText: {
     fontSize: 17,

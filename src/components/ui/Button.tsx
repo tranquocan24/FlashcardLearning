@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TouchableOpacityProps,
 } from "react-native";
+import { useTheme } from "../../context/ThemeContext";
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -29,9 +30,13 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
+  const { colors } = useTheme();
+
   const buttonStyle = [
     styles.button,
-    styles[`button_${variant}`],
+    variant === "primary" && { backgroundColor: colors.primary },
+    variant === "secondary" && { backgroundColor: colors.secondary },
+    variant === "outline" && { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.primary },
     styles[`button_${size}`],
     fullWidth ? styles.fullWidth : null,
     disabled || loading ? styles.disabled : null,
@@ -40,7 +45,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const textStyle: TextStyle[] = [
     styles.text,
-    styles[`text_${variant}`],
+    variant === "outline" ? { color: colors.primary } : { color: colors.card },
     styles[`text_${size}`],
   ];
 
@@ -53,7 +58,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "outline" ? "#007AFF" : "#FFF"} />
+        <ActivityIndicator color={variant === "outline" ? colors.primary : colors.card} />
       ) : (
         <Text style={textStyle}>{title}</Text>
       )}
@@ -67,17 +72,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-  },
-  button_primary: {
-    backgroundColor: "#007AFF",
-  },
-  button_secondary: {
-    backgroundColor: "#5856D6",
-  },
-  button_outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#007AFF",
   },
   button_small: {
     paddingVertical: 8,
@@ -99,15 +93,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: "600",
-  },
-  text_primary: {
-    color: "#FFF",
-  },
-  text_secondary: {
-    color: "#FFF",
-  },
-  text_outline: {
-    color: "#007AFF",
   },
   text_small: {
     fontSize: 14,

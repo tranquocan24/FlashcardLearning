@@ -7,7 +7,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { progressAPI } from '../../api/progress';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { HomeStackParamList } from '../../navigation/types';
 
@@ -18,6 +20,8 @@ export default function ResultScreen({ navigation, route }: Props) {
     const { user } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
     const scaleAnim = new Animated.Value(1); // Start at 1 to show immediately
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     useEffect(() => {
         // Entrance animation - subtle bounce
@@ -98,9 +102,9 @@ export default function ResultScreen({ navigation, route }: Props) {
     };
 
     const getScoreColor = () => {
-        if (percentage >= 80) return '#34C759';
-        if (percentage >= 60) return '#FF9500';
-        return '#FF3B30';
+        if (percentage >= 80) return colors.success;
+        if (percentage >= 60) return colors.warning;
+        return colors.error;
     };
 
     const handleRestart = () => {
@@ -223,17 +227,17 @@ export default function ResultScreen({ navigation, route }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
         paddingTop: 50,
     },
     backButtonContainer: {
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 8,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
     },
     backButton: {
         flexDirection: 'row',
@@ -243,12 +247,12 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         fontSize: 24,
-        color: '#007AFF',
+        color: colors.primary,
         marginRight: 4,
     },
     backText: {
         fontSize: 17,
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '500',
     },
     content: {
@@ -260,13 +264,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         textAlign: 'center',
         marginBottom: 8,
     },
     message: {
         fontSize: 18,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         textAlign: 'center',
         marginBottom: 20,
     },
@@ -280,8 +284,8 @@ const styles = StyleSheet.create({
         borderWidth: 8,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FFF',
-        shadowColor: '#000',
+        backgroundColor: colors.card,
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
@@ -293,17 +297,17 @@ const styles = StyleSheet.create({
     },
     scoreLabel: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         marginTop: 4,
     },
     statsContainer: {
         flexDirection: 'row',
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 20,
         marginBottom: 24,
         width: '100%',
-        shadowColor: '#000',
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
@@ -316,28 +320,28 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 32,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         marginBottom: 4,
     },
     statLabel: {
         fontSize: 13,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
     statDivider: {
         width: 1,
-        backgroundColor: '#E5E5EA',
+        backgroundColor: colors.border,
         marginHorizontal: 12,
     },
     tipContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F0F9FF',
+        backgroundColor: colors.secondaryBackground,
         borderRadius: 12,
         padding: 16,
         marginBottom: 32,
         width: '100%',
         borderWidth: 1,
-        borderColor: '#B3E0FF',
+        borderColor: colors.borderLight,
     },
     tipIcon: {
         fontSize: 24,
@@ -346,7 +350,7 @@ const styles = StyleSheet.create({
     tipText: {
         flex: 1,
         fontSize: 14,
-        color: '#0055A5',
+        color: colors.text,
         lineHeight: 20,
     },
     actionsContainer: {
@@ -361,17 +365,17 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     reviewButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderWidth: 2,
-        borderColor: '#007AFF',
+        borderColor: colors.primary,
     },
     reviewButtonText: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#007AFF',
+        color: colors.primary,
     },
     restartButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
     },
     restartButtonText: {
         fontSize: 17,
@@ -379,13 +383,13 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     homeButton: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: '#E5E5EA',
+        borderColor: colors.border,
     },
     homeButtonText: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
 });

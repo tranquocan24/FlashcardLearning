@@ -9,14 +9,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { ColorTheme } from "../../../constants/theme";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
 import GoogleAuthService from "../../services/GoogleAuthService";
 import { validateEmail, validatePassword } from "../../utils/validation";
 
 export default function LoginScreen({ navigation }: any) {
   const { login, loginWithGoogle } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
@@ -187,10 +191,10 @@ export default function LoginScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -204,12 +208,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: colors.secondaryText,
   },
   form: {
     width: "100%",
@@ -225,21 +229,21 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: colors.border,
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 14,
-    color: "#999",
+    color: colors.tertiaryText,
     fontWeight: "500",
   },
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: "#DADCE0",
+    borderColor: colors.border,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -248,13 +252,13 @@ const styles = StyleSheet.create({
   googleIcon: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#4285F4",
+    color: colors.primary,
     marginRight: 12,
   },
   googleButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
+    color: colors.text,
   },
   registerContainer: {
     flexDirection: "row",
@@ -264,6 +268,6 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 14,
-    color: "#666",
+    color: colors.secondaryText,
   },
 });

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useTheme } from "../context/ThemeContext";
 import { HomeStackParamList, MainTabParamList, SettingsStackParamList } from "./types";
 
 // Home Stack Screens
@@ -69,15 +70,18 @@ function SettingsStackNavigator() {
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#007AFF",
-        tabBarInactiveTintColor: "#8E8E93",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.tertiaryText,
         tabBarStyle: {
+          backgroundColor: colors.card,
           borderTopWidth: 1,
-          borderTopColor: "#E5E5E5",
+          borderTopColor: colors.border,
           paddingTop: 8,
           paddingBottom: 8,
           height: 60,

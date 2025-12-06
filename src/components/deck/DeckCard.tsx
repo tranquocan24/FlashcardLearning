@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 import { Deck } from '../../types/models';
 
 interface DeckCardProps {
@@ -10,6 +11,7 @@ interface DeckCardProps {
 }
 
 export default function DeckCard({ deck, onPress, onRemove, showRemoveButton = false }: DeckCardProps) {
+    const { colors } = useTheme();
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -22,6 +24,8 @@ export default function DeckCard({ deck, onPress, onRemove, showRemoveButton = f
         if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
         return date.toLocaleDateString();
     };
+
+    const styles = createStyles(colors);
 
     return (
         <TouchableOpacity
@@ -48,7 +52,7 @@ export default function DeckCard({ deck, onPress, onRemove, showRemoveButton = f
                             style={styles.removeButton}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                         >
-                            <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                            <Ionicons name="close-circle" size={24} color={colors.error} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -78,13 +82,13 @@ export default function DeckCard({ deck, onPress, onRemove, showRemoveButton = f
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
     card: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 16,
         padding: 20,
         marginBottom: 16,
-        shadowColor: '#000',
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 8,
@@ -105,14 +109,14 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 20,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         marginRight: 12,
     },
     removeButton: {
         padding: 4,
     },
     publicBadge: {
-        backgroundColor: '#E8F5E9',
+        backgroundColor: colors.secondaryBackground,
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
@@ -120,11 +124,11 @@ const styles = StyleSheet.create({
     publicBadgeText: {
         fontSize: 11,
         fontWeight: '600',
-        color: '#4CAF50',
+        color: colors.success,
     },
     description: {
         fontSize: 14,
-        color: '#666',
+        color: colors.secondaryText,
         lineHeight: 20,
         marginBottom: 16,
     },
@@ -141,19 +145,19 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#007AFF',
+        color: colors.primary,
     },
     statLabel: {
         fontSize: 14,
-        color: '#999',
+        color: colors.tertiaryText,
     },
     date: {
         fontSize: 12,
-        color: '#999',
+        color: colors.tertiaryText,
     },
     owner: {
         fontSize: 12,
-        color: '#999',
+        color: colors.tertiaryText,
         marginTop: 8,
         fontStyle: 'italic',
     },

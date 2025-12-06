@@ -15,7 +15,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { flashcardsAPI } from '../../api/flashcards';
+import { useTheme } from '../../context/ThemeContext';
 import { HomeStackParamList } from '../../navigation/types';
 
 type EditFlashcardScreenRouteProp = RouteProp<HomeStackParamList, 'EditFlashcard'>;
@@ -28,6 +30,8 @@ export default function EditFlashcardScreen() {
     const navigation = useNavigation<EditFlashcardScreenNavigationProp>();
     const route = useRoute<EditFlashcardScreenRouteProp>();
     const { flashcardId, deckId } = route.params;
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     const [word, setWord] = useState('');
     const [meaning, setMeaning] = useState('');
@@ -188,7 +192,7 @@ export default function EditFlashcardScreen() {
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -225,12 +229,12 @@ export default function EditFlashcardScreen() {
                                 disabled={isPlayingAudio || !word.trim()}
                             >
                                 {isPlayingAudio ? (
-                                    <ActivityIndicator size="small" color="#007AFF" />
+                                    <ActivityIndicator size="small" color={colors.primary} />
                                 ) : (
                                     <Ionicons
                                         name="volume-high"
-                                        size={24}
-                                        color={word.trim() ? "#007AFF" : "#CCC"}
+                                        size={20}
+                                        color={word.trim() ? colors.primary : colors.border}
                                     />
                                 )}
                             </TouchableOpacity>
@@ -238,7 +242,7 @@ export default function EditFlashcardScreen() {
                         <TextInput
                             style={styles.input}
                             placeholder="e.g., Serendipity"
-                            placeholderTextColor="#999"
+                            placeholderTextColor={colors.tertiaryText}
                             value={word}
                             onChangeText={setWord}
                             maxLength={100}
@@ -257,7 +261,7 @@ export default function EditFlashcardScreen() {
                         <TextInput
                             style={[styles.input, styles.textArea]}
                             placeholder="What does it mean?"
-                            placeholderTextColor="#999"
+                            placeholderTextColor={colors.tertiaryText}
                             value={meaning}
                             onChangeText={setMeaning}
                             maxLength={300}
@@ -277,7 +281,7 @@ export default function EditFlashcardScreen() {
                         <TextInput
                             style={[styles.input, styles.textArea]}
                             placeholder="A sentence using this word..."
-                            placeholderTextColor="#999"
+                            placeholderTextColor={colors.tertiaryText}
                             value={example}
                             onChangeText={setExample}
                             maxLength={300}
@@ -313,16 +317,16 @@ export default function EditFlashcardScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     scrollView: {
         flex: 1,
@@ -334,21 +338,21 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingBottom: 20,
         paddingHorizontal: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
+        borderBottomColor: colors.border,
     },
     cancelButton: {
         paddingVertical: 8,
     },
     cancelButtonText: {
         fontSize: 16,
-        color: '#007AFF',
+        color: colors.primary,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
     },
     placeholder: {
         width: 60,
@@ -368,23 +372,23 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
     },
     audioButton: {
         padding: 8,
     },
     required: {
-        color: '#FF3B30',
+        color: colors.error,
     },
     input: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: colors.border,
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
-        color: '#000',
+        color: colors.text,
     },
     textArea: {
         height: 100,
@@ -392,24 +396,24 @@ const styles = StyleSheet.create({
     },
     hint: {
         fontSize: 12,
-        color: '#999',
+        color: colors.tertiaryText,
         textAlign: 'right',
     },
     footer: {
         padding: 20,
         paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderTopWidth: 1,
-        borderTopColor: '#E5E5E5',
+        borderTopColor: colors.border,
     },
     saveButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
     },
     saveButtonDisabled: {
-        backgroundColor: '#CCC',
+        backgroundColor: colors.border,
     },
     saveButtonText: {
         fontSize: 17,

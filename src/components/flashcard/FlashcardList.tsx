@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 import { Flashcard } from '../../types/models';
 
 interface FlashcardListProps {
@@ -17,6 +18,7 @@ export default function FlashcardList({
 }: FlashcardListProps) {
     const [playingId, setPlayingId] = useState<string | null>(null);
     const sound = useRef<Audio.Sound | null>(null);
+    const { colors } = useTheme();
 
     const findAudioUrl = (data: any[]): string | null => {
         for (const entry of data) {
@@ -83,6 +85,8 @@ export default function FlashcardList({
         }
     };
 
+    const styles = createStyles(colors);
+
     return (
         <View style={styles.container}>
             {flashcards.map((flashcard, index) => (
@@ -102,12 +106,12 @@ export default function FlashcardList({
                                     activeOpacity={0.7}
                                 >
                                     {playingId === flashcard.id ? (
-                                        <ActivityIndicator size="small" color="#007AFF" />
+                                        <ActivityIndicator size="small" color={colors.primary} />
                                     ) : (
                                         <Ionicons
                                             name="volume-high"
                                             size={20}
-                                            color="#007AFF"
+                                            color={colors.primary}
                                         />
                                     )}
                                 </TouchableOpacity>
@@ -145,15 +149,15 @@ export default function FlashcardList({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
     container: {
         gap: 12,
     },
     card: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 16,
-        shadowColor: '#000',
+        shadowColor: colors.text,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
@@ -167,14 +171,14 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         borderRadius: 14,
-        backgroundColor: '#F0F0F0',
+        backgroundColor: colors.secondaryBackground,
         justifyContent: 'center',
         alignItems: 'center',
     },
     numberText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#666',
+        color: colors.secondaryText,
     },
     textContent: {
         flex: 1,
@@ -189,7 +193,7 @@ const styles = StyleSheet.create({
     word: {
         fontSize: 17,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         flex: 1,
     },
     audioButton: {
@@ -197,12 +201,12 @@ const styles = StyleSheet.create({
     },
     meaning: {
         fontSize: 15,
-        color: '#666',
+        color: colors.secondaryText,
         lineHeight: 20,
     },
     example: {
         fontSize: 13,
-        color: '#999',
+        color: colors.tertiaryText,
         fontStyle: 'italic',
         lineHeight: 18,
     },
@@ -213,7 +217,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
         paddingTop: 12,
         borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
+        borderTopColor: colors.borderLight,
     },
     actionButton: {
         paddingVertical: 4,
@@ -221,11 +225,11 @@ const styles = StyleSheet.create({
     editText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#007AFF',
+        color: colors.primary,
     },
     deleteText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#FF3B30',
+        color: colors.error,
     },
 });

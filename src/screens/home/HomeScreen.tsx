@@ -14,11 +14,12 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { theme } from '../../../constants/theme';
+import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
 import { folderAPI } from '../../api/folders';
 import DeckCard from '../../components/deck/DeckCard';
 import { FolderCard } from '../../components/folder/FolderCard';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { HomeStackParamList } from '../../navigation/types';
 import { Deck, Folder } from '../../types/models';
@@ -29,6 +30,8 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<HomeStackParamList, 'H
 export default function HomeScreen() {
     const navigation = useNavigation<HomeScreenNavigationProp>();
     const { user, isAuthenticated } = useAuth();
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
 
     const [decks, setDecks] = useState<Deck[]>([]);
     const [folders, setFolders] = useState<Folder[]>([]);
@@ -238,7 +241,7 @@ export default function HomeScreen() {
     if (isLoading && !refreshing) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -266,7 +269,7 @@ export default function HomeScreen() {
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search decks..."
-                    placeholderTextColor="#999"
+                    placeholderTextColor={colors.tertiaryText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     autoCapitalize="none"
@@ -315,12 +318,12 @@ export default function HomeScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        tintColor={theme.colors.primary}
+                        tintColor={colors.primary}
                     />
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="folder-open-outline" size={64} color={theme.colors.textSecondary} />
+                        <Ionicons name="folder-open-outline" size={64} color={colors.secondaryText} />
                         <Text style={styles.emptyText}>No folders or decks yet</Text>
                         <Text style={styles.emptySubtext}>
                             Create a folder or deck to get started
@@ -410,22 +413,22 @@ export default function HomeScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
+        backgroundColor: colors.background,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: theme.colors.background,
+        backgroundColor: colors.background,
     },
     header: {
         paddingHorizontal: 20,
         paddingTop: 60,
         paddingBottom: 20,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: colors.card,
     },
     headerTop: {
         flexDirection: 'row',
@@ -435,17 +438,17 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: '700',
-        color: theme.colors.text,
+        color: colors.text,
         marginBottom: 4,
     },
     subtitle: {
         fontSize: 15,
-        color: theme.colors.textSecondary,
+        color: colors.secondaryText,
     },
     createButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.colors.primary,
+        backgroundColor: colors.primary,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
@@ -459,38 +462,38 @@ const styles = StyleSheet.create({
     searchContainer: {
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5E5',
+        borderBottomColor: colors.border,
     },
     searchInput: {
         height: 44,
-        backgroundColor: '#F0F0F0',
+        backgroundColor: colors.secondaryBackground,
         borderRadius: 12,
         paddingHorizontal: 16,
         fontSize: 16,
-        color: theme.colors.text,
+        color: colors.text,
     },
     filterContainer: {
         flexDirection: 'row',
         paddingHorizontal: 20,
         paddingVertical: 12,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: colors.card,
         gap: 8,
     },
     filterButton: {
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
-        backgroundColor: '#F0F0F0',
+        backgroundColor: colors.secondaryBackground,
     },
     filterButtonActive: {
-        backgroundColor: theme.colors.primary,
+        backgroundColor: colors.primary,
     },
     filterButtonText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#666',
+        color: colors.secondaryText,
     },
     filterButtonTextActive: {
         color: '#FFF',
@@ -506,13 +509,13 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 18,
         fontWeight: '600',
-        color: theme.colors.textSecondary,
+        color: colors.secondaryText,
         marginTop: 16,
         marginBottom: 8,
     },
     emptySubtext: {
         fontSize: 14,
-        color: theme.colors.textSecondary,
+        color: colors.tertiaryText,
         textAlign: 'center',
     },
     modalOverlay: {
@@ -522,7 +525,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContent: {
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderRadius: 16,
         padding: 24,
         width: '85%',
@@ -531,16 +534,18 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: theme.colors.text,
+        color: colors.text,
         marginBottom: 16,
     },
     modalInput: {
         borderWidth: 1,
-        borderColor: theme.colors.border,
+        borderColor: colors.border,
         borderRadius: 8,
         padding: 12,
         fontSize: 16,
         marginBottom: 20,
+        color: colors.text,
+        backgroundColor: colors.background,
     },
     modalButtons: {
         flexDirection: 'row',
@@ -553,15 +558,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalButtonCancel: {
-        backgroundColor: theme.colors.surface,
+        backgroundColor: colors.secondaryBackground,
     },
     modalButtonConfirm: {
-        backgroundColor: theme.colors.primary,
+        backgroundColor: colors.primary,
     },
     modalButtonTextCancel: {
         fontSize: 16,
         fontWeight: '600',
-        color: theme.colors.text,
+        color: colors.text,
     },
     modalButtonTextConfirm: {
         fontSize: 16,

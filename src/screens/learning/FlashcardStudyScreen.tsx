@@ -13,7 +13,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ColorTheme } from '../../../constants/theme';
 import { flashcardsAPI } from '../../api/flashcards';
+import { useTheme } from '../../context/ThemeContext';
 import { HomeStackParamList } from '../../navigation/types';
 import { Flashcard } from '../../types/models';
 
@@ -24,6 +26,8 @@ const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 
 export default function FlashcardStudyScreen({ navigation, route }: Props) {
     const { deckId } = route.params;
+    const { colors } = useTheme();
+    const styles = createStyles(colors);
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -255,7 +259,7 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
@@ -343,12 +347,12 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
                         activeOpacity={0.7}
                     >
                         {isPlayingAudio ? (
-                            <ActivityIndicator size="small" color="#007AFF" />
+                            <ActivityIndicator size="small" color={colors.primary} />
                         ) : (
                             <Ionicons
                                 name="volume-high"
-                                size={28}
-                                color="#007AFF"
+                                size={24}
+                                color={colors.primary}
                             />
                         )}
                     </TouchableOpacity>
@@ -426,17 +430,17 @@ export default function FlashcardStudyScreen({ navigation, route }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
         paddingTop: 50,
     },
     backButtonContainer: {
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 8,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
     },
     backButton: {
         flexDirection: 'row',
@@ -446,41 +450,41 @@ const styles = StyleSheet.create({
     },
     backIcon: {
         fontSize: 24,
-        color: '#007AFF',
+        color: colors.primary,
         marginRight: 4,
     },
     backText: {
         fontSize: 17,
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '500',
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.background,
     },
     progressContainer: {
         padding: 20,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E5EA',
+        borderBottomColor: colors.border,
     },
     progressBar: {
         height: 6,
-        backgroundColor: '#E5E5EA',
+        backgroundColor: colors.borderLight,
         borderRadius: 3,
         overflow: 'hidden',
         marginBottom: 8,
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         borderRadius: 3,
     },
     progressText: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         textAlign: 'center',
         fontWeight: '500',
     },
@@ -501,10 +505,10 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 4,
@@ -514,8 +518,8 @@ const styles = StyleSheet.create({
     card: {
         flex: 1,
         borderRadius: 16,
-        backgroundColor: '#FFF',
-        shadowColor: '#000',
+        backgroundColor: colors.card,
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
@@ -526,7 +530,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         borderRadius: 16,
-        backgroundColor: '#FFF',
+        backgroundColor: colors.card,
         padding: 24,
         justifyContent: 'center',
         alignItems: 'center',
@@ -536,7 +540,7 @@ const styles = StyleSheet.create({
     cardBack: {},
     cardLabel: {
         fontSize: 12,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         textTransform: 'uppercase',
         letterSpacing: 1,
         marginBottom: 12,
@@ -544,39 +548,39 @@ const styles = StyleSheet.create({
     cardWord: {
         fontSize: 32,
         fontWeight: '700',
-        color: '#000',
+        color: colors.text,
         textAlign: 'center',
         marginBottom: 16,
     },
     cardMeaning: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#000',
+        color: colors.text,
         textAlign: 'center',
         marginBottom: 16,
     },
     divider: {
         width: '80%',
         height: 1,
-        backgroundColor: '#E5E5EA',
+        backgroundColor: colors.borderLight,
         marginVertical: 16,
     },
     exampleLabel: {
         fontSize: 12,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         textTransform: 'uppercase',
         letterSpacing: 1,
         marginBottom: 8,
     },
     cardExample: {
         fontSize: 16,
-        color: '#3C3C43',
+        color: colors.secondaryText,
         textAlign: 'center',
         fontStyle: 'italic',
     },
     tapHint: {
         fontSize: 14,
-        color: '#C7C7CC',
+        color: colors.tertiaryText,
         marginTop: 'auto',
     },
     hintsContainer: {
@@ -588,12 +592,12 @@ const styles = StyleSheet.create({
     },
     hintLeft: {
         fontSize: 14,
-        color: '#8E8E93',
+        color: colors.secondaryText,
         fontWeight: '500',
     },
     hintRight: {
         fontSize: 14,
-        color: '#007AFF',
+        color: colors.primary,
         fontWeight: '500',
     },
     actionsContainer: {
@@ -609,10 +613,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     previousButton: {
-        backgroundColor: '#8E8E93',
+        backgroundColor: colors.secondary,
     },
     continueButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
     },
     actionButtonText: {
         fontSize: 17,
@@ -621,6 +625,6 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        color: '#8E8E93',
+        color: colors.secondaryText,
     },
 });

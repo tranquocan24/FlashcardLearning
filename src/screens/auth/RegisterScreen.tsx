@@ -8,8 +8,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { ColorTheme } from "../../../constants/theme";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
 import {
   validateConfirmPassword,
@@ -20,6 +22,8 @@ import {
 
 export default function RegisterScreen({ navigation }: any) {
   const { register } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -158,10 +162,10 @@ export default function RegisterScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ColorTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -175,12 +179,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#333",
+    color: colors.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: colors.secondaryText,
   },
   form: {
     width: "100%",
@@ -196,6 +200,6 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 14,
-    color: "#666",
+    color: colors.secondaryText,
   },
 });
