@@ -10,9 +10,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { useAuth } from '../../hooks/useAuth';
-import { useTheme } from '../../context/ThemeContext';
 import { ColorTheme } from '../../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../hooks/useAuth';
 import { SettingsStackParamList } from '../../navigation/types';
 
 // Avatar images mapping

@@ -8,7 +8,7 @@ import GoogleAuthService from './src/services/GoogleAuthService';
 
 function AppContent() {
   const { isDark } = useTheme();
-  
+
   return (
     <>
       <AppNavigator />
