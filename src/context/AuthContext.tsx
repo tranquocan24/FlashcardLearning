@@ -184,6 +184,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = useCallback(async () => {
     try {
+      // Try to sign out from Google (safe to call even if not logged in with Google)
+      try {
+        const GoogleAuthService = (await import('../services/GoogleAuthService')).default;
+        const isSignedIn = await GoogleAuthService.isSignedIn();
+        if (isSignedIn) {
+          await GoogleAuthService.signOut();
+          console.log('Google sign-out successful');
+        }
+      } catch (googleError) {
+        // Silent fail - not critical if Google sign-out fails
+        console.log('Google sign-out skipped:', googleError);
+      }
+
       await authAPI.logout();
       setUser(null);
       await storage.removeItem(STORAGE_KEYS.USER);

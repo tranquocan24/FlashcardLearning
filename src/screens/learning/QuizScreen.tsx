@@ -1,478 +1,481 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { ColorTheme } from '../../../constants/theme';
-import { flashcardsAPI } from '../../api/flashcards';
-import { useTheme } from '../../context/ThemeContext';
-import { HomeStackParamList } from '../../navigation/types';
-import { Flashcard } from '../../types/models';
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { ColorTheme } from "../../../constants/theme";
+import { flashcardsAPI } from "../../api/flashcards";
+import { useTheme } from "../../context/ThemeContext";
+import { HomeStackParamList } from "../../navigation/types";
+import { Flashcard } from "../../types/models";
 
-type Props = NativeStackScreenProps<HomeStackParamList, 'Quiz'>;
+type Props = NativeStackScreenProps<HomeStackParamList, "Quiz">;
 
 interface QuizQuestion {
-    flashcard: Flashcard;
-    options: string[];
-    correctAnswer: string;
+  flashcard: Flashcard;
+  options: string[];
+  correctAnswer: string;
 }
 
 export default function QuizScreen({ navigation, route }: Props) {
-    const { deckId } = route.params;
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [correctCount, setCorrectCount] = useState(0);
-    const [showResult, setShowResult] = useState(false);
-    const { colors } = useTheme();
-    const styles = createStyles(colors);
+  const { deckId } = route.params;
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
-    useEffect(() => {
-        fetchFlashcards();
-    }, []);
+  useEffect(() => {
+    fetchFlashcards();
+  }, []);
 
-    const fetchFlashcards = async () => {
-        try {
-            setIsLoading(true);
-            const response = await flashcardsAPI.getFlashcardsByDeck(deckId);
-            const cards = response.data || [];
+  const fetchFlashcards = async () => {
+    try {
+      setIsLoading(true);
+      const response = await flashcardsAPI.getFlashcardsByDeck(deckId);
+      const cards = response.data || [];
 
-            if (cards.length < 4) {
-                Alert.alert(
-                    'Not Enough Cards',
-                    'You need at least 4 flashcards to play Quiz.',
-                    [{ text: 'OK', onPress: () => navigation.goBack() }]
-                );
-                return;
+      if (cards.length < 4) {
+        Alert.alert(
+          "Not Enough Cards",
+          "You need at least 4 flashcards to play Quiz.",
+          [{ text: "OK", onPress: () => navigation.goBack() }]
+        );
+        return;
+      }
+
+      setFlashcards(cards);
+      generateQuestions(cards);
+    } catch (error) {
+      console.error("Failed to fetch flashcards:", error);
+      Alert.alert("Error", "Failed to load flashcards");
+      navigation.goBack();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateQuestions = (cards: Flashcard[]) => {
+    const shuffled = [...cards].sort(() => Math.random() - 0.5);
+    const quizQuestions: QuizQuestion[] = [];
+
+    for (const card of shuffled) {
+      // Get 3 wrong answers
+      const wrongAnswers = cards
+        .filter((c) => c.id !== card.id)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map((c) => c.meaning);
+
+      // Combine with correct answer and shuffle
+      const options = [...wrongAnswers, card.meaning].sort(
+        () => Math.random() - 0.5
+      );
+
+      quizQuestions.push({
+        flashcard: card,
+        options,
+        correctAnswer: card.meaning,
+      });
+    }
+
+    setQuestions(quizQuestions);
+  };
+
+  const handleAnswerSelect = (answer: string) => {
+    if (showResult) return; // Prevent changing answer after showing result
+
+    setSelectedAnswer(answer);
+    setShowResult(true);
+
+    const isCorrect = answer === questions[currentIndex].correctAnswer;
+    if (isCorrect) {
+      setCorrectCount(correctCount + 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex >= questions.length - 1) {
+      // Finished all questions
+      navigation.replace("Result", {
+        type: "QUIZ",
+        total: questions.length,
+        correct: correctCount,
+        deckId,
+      });
+      return;
+    }
+
+    setCurrentIndex(currentIndex + 1);
+    setSelectedAnswer(null);
+    setShowResult(false);
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.emptyText}>No questions available</Text>
+      </View>
+    );
+  }
+
+  const currentQuestion = questions[currentIndex];
+  const progress = ((currentIndex + 1) / questions.length) * 100;
+
+  return (
+    <View style={styles.container}>
+      {/* Back Button */}
+      <View style={styles.backButtonContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.backIcon}>←</Text>
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Progress Bar */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        </View>
+        <Text style={styles.progressText}>
+          Question {currentIndex + 1} / {questions.length}
+        </Text>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Question */}
+        <View style={styles.questionContainer}>
+          <Text style={styles.questionLabel}>What does this word mean?</Text>
+          <Text style={styles.questionWord}>
+            {currentQuestion.flashcard.word}
+          </Text>
+        </View>
+
+        {/* Options */}
+        <View style={styles.optionsContainer}>
+          {currentQuestion.options.map((option, index) => {
+            const isSelected = selectedAnswer === option;
+            const isCorrect = option === currentQuestion.correctAnswer;
+            const showCorrect = showResult && isCorrect;
+            const showWrong = showResult && isSelected && !isCorrect;
+
+            let buttonStyle = styles.optionButton;
+            if (showCorrect) {
+              buttonStyle = styles.optionButtonCorrect;
+            } else if (showWrong) {
+              buttonStyle = styles.optionButtonWrong;
+            } else if (isSelected) {
+              buttonStyle = styles.optionButtonSelected;
             }
 
-            setFlashcards(cards);
-            generateQuestions(cards);
-        } catch (error) {
-            console.error('Failed to fetch flashcards:', error);
-            Alert.alert('Error', 'Failed to load flashcards');
-            navigation.goBack();
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const generateQuestions = (cards: Flashcard[]) => {
-        const shuffled = [...cards].sort(() => Math.random() - 0.5);
-        const quizQuestions: QuizQuestion[] = [];
-
-        for (const card of shuffled) {
-            // Get 3 wrong answers
-            const wrongAnswers = cards
-                .filter((c) => c.id !== card.id)
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 3)
-                .map((c) => c.meaning);
-
-            // Combine with correct answer and shuffle
-            const options = [...wrongAnswers, card.meaning].sort(
-                () => Math.random() - 0.5
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[styles.option, buttonStyle]}
+                onPress={() => handleAnswerSelect(option)}
+                disabled={showResult}
+                activeOpacity={0.7}
+              >
+                <View style={styles.optionContent}>
+                  <View style={styles.optionNumber}>
+                    <Text style={styles.optionNumberText}>
+                      {String.fromCharCode(65 + index)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      showCorrect && styles.optionTextCorrect,
+                      showWrong && styles.optionTextWrong,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                  {showCorrect && <Text style={styles.checkmark}>✓</Text>}
+                  {showWrong && <Text style={styles.crossmark}>✗</Text>}
+                </View>
+              </TouchableOpacity>
             );
-
-            quizQuestions.push({
-                flashcard: card,
-                options,
-                correctAnswer: card.meaning,
-            });
-        }
-
-        setQuestions(quizQuestions);
-    };
-
-    const handleAnswerSelect = (answer: string) => {
-        if (showResult) return; // Prevent changing answer after showing result
-
-        setSelectedAnswer(answer);
-        setShowResult(true);
-
-        const isCorrect = answer === questions[currentIndex].correctAnswer;
-        if (isCorrect) {
-            setCorrectCount(correctCount + 1);
-        }
-    };
-
-    const handleNext = () => {
-        if (currentIndex >= questions.length - 1) {
-            // Finished all questions
-            navigation.replace('Result', {
-                type: 'QUIZ',
-                total: questions.length,
-                correct: correctCount,
-                deckId,
-            });
-            return;
-        }
-
-        setCurrentIndex(currentIndex + 1);
-        setSelectedAnswer(null);
-        setShowResult(false);
-    };
-
-    if (isLoading) {
-        return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (questions.length === 0) {
-        return (
-            <View style={styles.centerContainer}>
-                <Text style={styles.emptyText}>No questions available</Text>
-            </View>
-        );
-    }
-
-    const currentQuestion = questions[currentIndex];
-    const progress = ((currentIndex + 1) / questions.length) * 100;
-
-    return (
-        <View style={styles.container}>
-            {/* Back Button */}
-            <View style={styles.backButtonContainer}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.backIcon}>←</Text>
-                    <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Progress Bar */}
-            <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${progress}%` }]} />
-                </View>
-                <Text style={styles.progressText}>
-                    Question {currentIndex + 1} / {questions.length}
-                </Text>
-            </View>
-
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-            >
-                {/* Question */}
-                <View style={styles.questionContainer}>
-                    <Text style={styles.questionLabel}>What does this word mean?</Text>
-                    <Text style={styles.questionWord}>{currentQuestion.flashcard.word}</Text>
-                </View>
-
-                {/* Options */}
-                <View style={styles.optionsContainer}>
-                    {currentQuestion.options.map((option, index) => {
-                        const isSelected = selectedAnswer === option;
-                        const isCorrect = option === currentQuestion.correctAnswer;
-                        const showCorrect = showResult && isCorrect;
-                        const showWrong = showResult && isSelected && !isCorrect;
-
-                        let buttonStyle = styles.optionButton;
-                        if (showCorrect) {
-                            buttonStyle = styles.optionButtonCorrect;
-                        } else if (showWrong) {
-                            buttonStyle = styles.optionButtonWrong;
-                        } else if (isSelected) {
-                            buttonStyle = styles.optionButtonSelected;
-                        }
-
-                        return (
-                            <TouchableOpacity
-                                key={index}
-                                style={[styles.option, buttonStyle]}
-                                onPress={() => handleAnswerSelect(option)}
-                                disabled={showResult}
-                                activeOpacity={0.7}
-                            >
-                                <View style={styles.optionContent}>
-                                    <View style={styles.optionNumber}>
-                                        <Text style={styles.optionNumberText}>
-                                            {String.fromCharCode(65 + index)}
-                                        </Text>
-                                    </View>
-                                    <Text
-                                        style={[
-                                            styles.optionText,
-                                            showCorrect && styles.optionTextCorrect,
-                                            showWrong && styles.optionTextWrong,
-                                        ]}
-                                    >
-                                        {option}
-                                    </Text>
-                                    {showCorrect && <Text style={styles.checkmark}>✓</Text>}
-                                    {showWrong && <Text style={styles.crossmark}>✗</Text>}
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-
-                {/* Result Feedback */}
-                {showResult && (
-                    <View
-                        style={[
-                            styles.feedback,
-                            selectedAnswer === currentQuestion.correctAnswer
-                                ? styles.feedbackCorrect
-                                : styles.feedbackWrong,
-                        ]}
-                    >
-                        <Text style={styles.feedbackText}>
-                            {selectedAnswer === currentQuestion.correctAnswer
-                                ? '🎉 Correct!'
-                                : '❌ Wrong!'}
-                        </Text>
-                        {currentQuestion.flashcard.example && (
-                            <View style={styles.exampleContainer}>
-                                <Text style={styles.exampleLabel}>Example:</Text>
-                                <Text style={styles.exampleText}>
-                                    {currentQuestion.flashcard.example}
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-                )}
-            </ScrollView>
-
-            {/* Next Button */}
-            {showResult && (
-                <View style={styles.footer}>
-                    <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-                        <Text style={styles.nextButtonText}>
-                            {currentIndex >= questions.length - 1 ? 'Finish' : 'Next'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+          })}
         </View>
-    );
+
+        {/* Result Feedback */}
+        {showResult && (
+          <View
+            style={[
+              styles.feedback,
+              selectedAnswer === currentQuestion.correctAnswer
+                ? styles.feedbackCorrect
+                : styles.feedbackWrong,
+            ]}
+          >
+            <Text style={styles.feedbackText}>
+              {selectedAnswer === currentQuestion.correctAnswer
+                ? "Correct!"
+                : "Wrong!"}
+            </Text>
+            {currentQuestion.flashcard.example && (
+              <View style={styles.exampleContainer}>
+                <Text style={styles.exampleLabel}>Example:</Text>
+                <Text style={styles.exampleText}>
+                  {currentQuestion.flashcard.example}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Next Button */}
+      {showResult && (
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <Text style={styles.nextButtonText}>
+              {currentIndex >= questions.length - 1 ? "Finish" : "Next"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
 }
 
-const createStyles = (colors: ColorTheme) => StyleSheet.create({
+const createStyles = (colors: ColorTheme) =>
+  StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: colors.background,
-        paddingTop: 50,
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 50,
     },
     backButtonContainer: {
-        paddingHorizontal: 16,
-        paddingTop: 8,
-        paddingBottom: 8,
-        backgroundColor: colors.card,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+      backgroundColor: colors.card,
     },
     backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 8,
-        alignSelf: 'flex-start',
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 8,
+      alignSelf: "flex-start",
     },
     backIcon: {
-        fontSize: 24,
-        color: colors.primary,
-        marginRight: 4,
+      fontSize: 24,
+      color: colors.primary,
+      marginRight: 4,
     },
     backText: {
-        fontSize: 17,
-        color: colors.primary,
-        fontWeight: '500',
+      fontSize: 17,
+      color: colors.primary,
+      fontWeight: "500",
     },
     centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: colors.background,
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.background,
     },
     progressContainer: {
-        padding: 20,
-        backgroundColor: colors.card,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+      padding: 20,
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
     },
     progressBar: {
-        height: 6,
-        backgroundColor: colors.borderLight,
-        borderRadius: 3,
-        overflow: 'hidden',
-        marginBottom: 8,
+      height: 6,
+      backgroundColor: colors.borderLight,
+      borderRadius: 3,
+      overflow: "hidden",
+      marginBottom: 8,
     },
     progressFill: {
-        height: '100%',
-        backgroundColor: colors.success,
-        borderRadius: 3,
+      height: "100%",
+      backgroundColor: colors.success,
+      borderRadius: 3,
     },
     progressText: {
-        fontSize: 14,
-        color: colors.secondaryText,
-        textAlign: 'center',
-        fontWeight: '500',
+      fontSize: 14,
+      color: colors.secondaryText,
+      textAlign: "center",
+      fontWeight: "500",
     },
     scrollView: {
-        flex: 1,
+      flex: 1,
     },
     scrollContent: {
-        padding: 20,
+      padding: 20,
     },
     questionContainer: {
-        backgroundColor: colors.card,
-        borderRadius: 12,
-        padding: 24,
-        marginBottom: 24,
-        alignItems: 'center',
-        shadowColor: colors.text,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 24,
+      marginBottom: 24,
+      alignItems: "center",
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
     },
     questionLabel: {
-        fontSize: 14,
-        color: colors.secondaryText,
-        marginBottom: 12,
+      fontSize: 14,
+      color: colors.secondaryText,
+      marginBottom: 12,
     },
     questionWord: {
-        fontSize: 28,
-        fontWeight: '700',
-        color: colors.text,
-        textAlign: 'center',
+      fontSize: 28,
+      fontWeight: "700",
+      color: colors.text,
+      textAlign: "center",
     },
     optionsContainer: {
-        gap: 12,
+      gap: 12,
     },
     option: {
-        borderRadius: 12,
-        overflow: 'hidden',
+      borderRadius: 12,
+      overflow: "hidden",
     },
     optionButton: {
-        backgroundColor: colors.card,
-        borderWidth: 2,
-        borderColor: colors.border,
+      backgroundColor: colors.card,
+      borderWidth: 2,
+      borderColor: colors.border,
     },
     optionButtonSelected: {
-        backgroundColor: colors.secondaryBackground,
-        borderColor: colors.primary,
+      backgroundColor: colors.secondaryBackground,
+      borderColor: colors.primary,
     },
     optionButtonCorrect: {
-        backgroundColor: colors.secondaryBackground,
-        borderColor: colors.success,
+      backgroundColor: colors.secondaryBackground,
+      borderColor: colors.success,
     },
     optionButtonWrong: {
-        backgroundColor: colors.secondaryBackground,
-        borderColor: colors.error,
+      backgroundColor: colors.secondaryBackground,
+      borderColor: colors.error,
     },
     optionContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
     },
     optionNumber: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: colors.secondaryBackground,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.secondaryBackground,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
     },
     optionNumberText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
     },
     optionText: {
-        flex: 1,
-        fontSize: 16,
-        color: colors.text,
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
     },
     optionTextCorrect: {
-        color: colors.success,
-        fontWeight: '600',
+      color: colors.success,
+      fontWeight: "600",
     },
     optionTextWrong: {
-        color: colors.error,
-        fontWeight: '600',
+      color: colors.error,
+      fontWeight: "600",
     },
     checkmark: {
-        fontSize: 24,
-        color: colors.success,
-        marginLeft: 8,
+      fontSize: 24,
+      color: colors.success,
+      marginLeft: 8,
     },
     crossmark: {
-        fontSize: 24,
-        color: colors.error,
-        marginLeft: 8,
+      fontSize: 24,
+      color: colors.error,
+      marginLeft: 8,
     },
     feedback: {
-        marginTop: 24,
-        borderRadius: 12,
-        padding: 16,
+      marginTop: 24,
+      borderRadius: 12,
+      padding: 16,
     },
     feedbackCorrect: {
-        backgroundColor: colors.secondaryBackground,
-        borderWidth: 1,
-        borderColor: colors.success,
+      backgroundColor: colors.secondaryBackground,
+      borderWidth: 1,
+      borderColor: colors.success,
     },
     feedbackWrong: {
-        backgroundColor: colors.secondaryBackground,
-        borderWidth: 1,
-        borderColor: colors.error,
+      backgroundColor: colors.secondaryBackground,
+      borderWidth: 1,
+      borderColor: colors.error,
     },
     feedbackText: {
-        fontSize: 18,
-        fontWeight: '600',
-        textAlign: 'center',
-        marginBottom: 8,
+      fontSize: 18,
+      fontWeight: "600",
+      textAlign: "center",
+      marginBottom: 8,
     },
     exampleContainer: {
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
     },
     exampleLabel: {
-        fontSize: 12,
-        color: colors.secondaryText,
-        marginBottom: 4,
-        fontWeight: '600',
+      fontSize: 12,
+      color: colors.secondaryText,
+      marginBottom: 4,
+      fontWeight: "600",
     },
     exampleText: {
-        fontSize: 14,
-        color: colors.text,
-        fontStyle: 'italic',
+      fontSize: 14,
+      color: colors.text,
+      fontStyle: "italic",
     },
     footer: {
-        padding: 20,
-        backgroundColor: colors.card,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
+      padding: 20,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
     },
     nextButton: {
-        backgroundColor: colors.primary,
-        borderRadius: 12,
-        paddingVertical: 16,
-        alignItems: 'center',
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: 16,
+      alignItems: "center",
     },
     nextButtonText: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: '#FFF',
+      fontSize: 17,
+      fontWeight: "600",
+      color: "#FFF",
     },
     emptyText: {
-        fontSize: 16,
-        color: colors.secondaryText,
+      fontSize: 16,
+      color: colors.secondaryText,
     },
-});
+  });

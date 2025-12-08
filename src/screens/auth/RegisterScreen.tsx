@@ -11,8 +11,8 @@ import {
 import { ColorTheme } from "../../../constants/theme";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../hooks/useAuth";
 import {
   validateConfirmPassword,
   validateEmail,
@@ -162,44 +162,45 @@ export default function RegisterScreen({ navigation }: any) {
   );
 }
 
-const createStyles = (colors: ColorTheme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.secondaryText,
-  },
-  form: {
-    width: "100%",
-  },
-  registerButton: {
-    marginTop: 8,
-  },
-  loginContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 24,
-  },
-  loginText: {
-    fontSize: 14,
-    color: colors.secondaryText,
-  },
-});
+const createStyles = (colors: ColorTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: "center",
+      padding: 24,
+    },
+    header: {
+      alignItems: "center",
+      marginBottom: 32,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.secondaryText,
+    },
+    form: {
+      width: "100%",
+    },
+    registerButton: {
+      marginTop: 8,
+    },
+    loginContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 24,
+    },
+    loginText: {
+      fontSize: 14,
+      color: colors.secondaryText,
+    },
+  });

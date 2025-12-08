@@ -119,6 +119,8 @@ class GoogleAuthService {
 
     async signOut() {
         try {
+            // Ensure configured before sign out
+            await this.configure();
             await GoogleSignin.signOut();
             return { success: true };
         } catch (error: any) {
