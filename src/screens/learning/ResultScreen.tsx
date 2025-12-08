@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { ColorTheme } from '../../../constants/theme';
 import { progressAPI } from '../../api/progress';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Result'>;

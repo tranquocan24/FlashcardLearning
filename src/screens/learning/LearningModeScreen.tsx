@@ -20,7 +20,7 @@ interface ModeOption {
     id: 'FLASHCARD' | 'QUIZ' | 'MATCH';
     title: string;
     description: string;
-    icon: string;
+
     color: string;
 }
 
@@ -29,21 +29,21 @@ const modes: ModeOption[] = [
         id: 'FLASHCARD',
         title: 'Flashcard Study',
         description: 'Lật thẻ để xem nghĩa và ví dụ',
-        icon: '🃏',
+
         color: 'primary' as const,
     },
     {
         id: 'QUIZ',
         title: 'Quiz',
         description: 'Trắc nghiệm 4 đáp án',
-        icon: '✍️',
+
         color: 'success' as const,
     },
     {
         id: 'MATCH',
         title: 'Match Game',
         description: 'Nối từ với nghĩa tương ứng',
-        icon: '🎯',
+
         color: 'warning' as const,
     },
 ];
@@ -151,9 +151,7 @@ export default function LearningModeScreen({ navigation, route }: Props) {
                             onPress={() => handleModeSelect(mode.id)}
                             activeOpacity={0.7}
                         >
-                            <View style={styles.modeIconContainer}>
-                                <Text style={styles.modeIcon}>{mode.icon}</Text>
-                            </View>
+
                             <View style={styles.modeContent}>
                                 <Text style={styles.modeTitle}>{mode.title}</Text>
                                 <Text style={styles.modeDescription}>{mode.description}</Text>

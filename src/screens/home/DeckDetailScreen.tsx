@@ -14,8 +14,8 @@ import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
 import { flashcardsAPI } from '../../api/flashcards';
 import FlashcardList from '../../components/flashcard/FlashcardList';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import { HomeStackParamList } from '../../navigation/types';
 import { Deck, Flashcard } from '../../types/models';
 

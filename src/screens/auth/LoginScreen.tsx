@@ -12,8 +12,8 @@ import {
 import { ColorTheme } from "../../../constants/theme";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../hooks/useAuth";
 import GoogleAuthService from "../../services/GoogleAuthService";
 import { validateEmail, validatePassword } from "../../utils/validation";
 
@@ -68,11 +68,19 @@ export default function LoginScreen({ navigation }: any) {
         // Extract user info from Google Sign-In result
         // The structure is: result.data.data.user (nested data)
         const googleData = result.data.data || result.data;
+
+        // Type guard: Check if googleData has user property
+        if (!googleData || typeof googleData !== 'object' || !('user' in googleData)) {
+          Alert.alert("Error", "Invalid response structure from Google");
+          console.error("Full result:", result);
+          return;
+        }
+
         const googleUser = googleData.user;
 
         if (!googleUser?.id || !googleUser?.email) {
           Alert.alert("Error", "Incomplete user data from Google");
-          console.error("Full result:", result);
+          console.error("User data:", googleUser);
           return;
         }
 
@@ -89,7 +97,7 @@ export default function LoginScreen({ navigation }: any) {
           id: googleUser.id,
           email: googleUser.email,
           name: googleUser.name || googleUser.givenName || googleUser.email.split('@')[0],
-          photo: googleUser.photo,
+          photo: googleUser.photo || undefined,
         });
 
         Alert.alert("Welcome!", "Signed in successfully with Google");

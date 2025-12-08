@@ -1,6 +1,7 @@
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -60,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       console.log('Attempting login...');
       const response = await authAPI.login({ email, password });
@@ -97,9 +98,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Login error:", error);
       throw error;
     }
-  };
+  }, []);
 
-  const register = async (
+  const register = useCallback(async (
     username: string,
     email: string,
     password: string
@@ -117,9 +118,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Registration error:", error);
       throw error;
     }
-  };
+  }, [login]);
 
-  const loginWithGoogle = async (googleUserData: {
+  const loginWithGoogle = useCallback(async (googleUserData: {
     id: string;
     email: string;
     name: string;
@@ -154,14 +155,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         // Then save user data
-        await storage.setItem(STORAGE_KEYS.USER, response.user);
+        const googleUser: User = {
+          ...response.user,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        await storage.setItem(STORAGE_KEYS.USER, googleUser);
 
         // Set user LAST - this triggers navigation
-        setUser(response.user);
+        setUser(googleUser);
         console.log("Google login successful, user saved");
       } else {
-        console.error("Google login failed:", response.message || "Unknown error");
-        throw new Error(response.message || "Google login failed");
+        const errorMsg = "Google login failed";
+        console.error("Google login failed:", errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
       console.error("Google login error:", error);
@@ -172,10 +179,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
       throw error;
     }
-  };
+  }, []);
 
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await authAPI.logout();
       setUser(null);
@@ -185,12 +192,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Logout error:", error);
       throw error;
     }
-  };
+  }, []);
 
-  const updateUser = (updatedUser: User) => {
+  const updateUser = useCallback((updatedUser: User) => {
     setUser(updatedUser);
     storage.setItem(STORAGE_KEYS.USER, updatedUser);
-  };
+  }, []);
 
   const value: AuthContextType = useMemo(
     () => ({
@@ -202,8 +209,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       register,
       logout,
       updateUser,
+
     }),
-    [user, isLoading]
+    [user, isLoading, login, loginWithGoogle, register, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

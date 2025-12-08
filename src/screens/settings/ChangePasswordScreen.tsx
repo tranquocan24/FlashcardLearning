@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { ColorTheme } from '../../../constants/theme';
 import { usersAPI } from '../../api/users';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import { SettingsStackParamList } from '../../navigation/types';
 
 type ChangePasswordScreenNavigationProp = NativeStackNavigationProp<

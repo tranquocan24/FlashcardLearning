@@ -3,7 +3,7 @@
 // API Configuration
 // API Configuration
 export const API_URL = __DEV__
-  ? 'http://10.60.243.230:3000'
+  ? 'http://10.60.243.54:3000'
   : 'https://api.flashcardlearning.com';
 
 export const API_TIMEOUT = 10000; // 10 seconds

@@ -11,8 +11,8 @@ import {
     View,
 } from 'react-native';
 import { ColorTheme } from '../../../constants/theme';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import { SettingsStackParamList } from '../../navigation/types';
 
 // Avatar images mapping

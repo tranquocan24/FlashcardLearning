@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import { ColorTheme } from '../../../constants/theme';
 import { usersAPI } from "../../api/users";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from "../../hooks/useAuth";
 import { SettingsStackParamList } from "../../navigation/types";
 
 // Avatar images mapping
@@ -49,7 +49,7 @@ type EditProfileScreenNavigationProp = NativeStackNavigationProp<
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<EditProfileScreenNavigationProp>();
-  const { user, setUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -85,18 +85,18 @@ export default function EditProfileScreen() {
         avatar_url: avatarUrl,
       });
 
-      const updatedUser = await usersAPI.updateUser(user.id, {
+      const updatedUserData = await usersAPI.updateUser(user.id, {
         username: username.trim(),
         avatar_url: avatarUrl,
       });
 
-      console.log("Update response:", updatedUser);
+      console.log("Update response:", updatedUserData);
 
       // Update user in context
       updateUser({
         ...user,
-        username: updatedUser.username,
-        avatar_url: updatedUser.avatar_url,
+        username: updatedUserData.username,
+        avatar_url: updatedUserData.avatar_url,
       });
 
       Alert.alert("Success", "Profile updated successfully!", [
@@ -207,7 +207,7 @@ export default function EditProfileScreen() {
             <TextInput
               style={styles.input}
               placeholder="Enter your username"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.tertiaryText}
               value={username}
               onChangeText={setUsername}
               maxLength={50}

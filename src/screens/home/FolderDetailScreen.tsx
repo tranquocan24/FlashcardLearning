@@ -14,8 +14,8 @@ import { ColorTheme } from '../../../constants/theme';
 import { decksAPI } from '../../api/decks';
 import { folderAPI } from '../../api/folders';
 import DeckCard from '../../components/deck/DeckCard';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import { Deck, Folder } from '../../types/models';
 
 export default function FolderDetailScreen({ route, navigation }: any) {
@@ -123,7 +123,7 @@ export default function FolderDetailScreen({ route, navigation }: any) {
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Save',
-                    onPress: async (newName) => {
+                    onPress: async (newName?: string) => {
                         if (!newName || !newName.trim()) {
                             Alert.alert('Error', 'Folder name cannot be empty');
                             return;
